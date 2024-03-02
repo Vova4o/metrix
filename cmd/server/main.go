@@ -1,15 +1,18 @@
 package main
 
 import (
-	"net/http"
-	"strconv"
-	"strings"
+    "net/http"
+    "strconv"
+    "strings"
+    "sync"
 )
 
 // MemStorage is a simple in-memory storage for metrics
+// It uses two sync.Map to store gauge and counter metrics
+// I had to change the type of the map to avoid concurrent map writes
 type MemStorage struct {
-	gaugeMetrics   map[string]float64
-	counterMetrics map[string]int64
+    gaugeMetrics   sync.Map
+    counterMetrics sync.Map
 }
 
 // Metric is a generic metric type that can be used for any type of metric
@@ -36,30 +39,39 @@ type StorageInterface interface {
 
 // SetGauge sets the value of a gauge
 func (m *MemStorage) SetGauge(key string, value float64) {
-	m.gaugeMetrics[key] = value
+    m.gaugeMetrics.Store(key, value)
 }
 
 // GetGauge returns the value of a gauge
 func (m *MemStorage) GetGauge(key string) (float64, bool) {
-	value, exists := m.gaugeMetrics[key]
-	return value, exists
+    value, exists := m.gaugeMetrics.Load(key)
+    if exists {
+        return value.(float64), exists
+    }
+    return 0, exists
 }
 
 // SetCounter sets the value of a counter
 func (m *MemStorage) SetCounter(key string, value int64) {
-	m.counterMetrics[key] += value
+    actual, loaded := m.counterMetrics.LoadOrStore(key, value)
+    if loaded {
+        m.counterMetrics.Store(key, actual.(int64)+value)
+    }
 }
 
 // GetCounter returns the value of a counter
 func (m *MemStorage) GetCounter(key string) (int64, bool) {
-	value, exists := m.counterMetrics[key]
-	return value, exists
+    value, exists := m.counterMetrics.Load(key)
+    if exists {
+        return value.(int64), exists
+    }
+    return 0, exists
 }
 
 // Delete removes a metric from the storage
 func (m *MemStorage) Delete(key string) {
-	delete(m.gaugeMetrics, key)
-	delete(m.counterMetrics, key)
+    m.gaugeMetrics.Delete(key)
+    m.counterMetrics.Delete(key)
 }
 
 func main() {
@@ -69,8 +81,8 @@ func main() {
 	// Create a new MemStorage that will be used to store the metrics
 	// we create new storage inside the main function to make it unique for each instance of the server
 	storage := &MemStorage{
-		gaugeMetrics:   make(map[string]float64),
-		counterMetrics: make(map[string]int64),
+		gaugeMetrics:   sync.Map{},
+		counterMetrics: sync.Map{},
 	}
 
 	// Register a handler for the /metrics endpoint
