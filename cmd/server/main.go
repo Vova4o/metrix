@@ -129,8 +129,7 @@ func main() {
 			//Check if there is an error
 			if err != nil {
 				// If there is, return a 400 Bad Request error
-				// Originaly was 400, but tests ask for 404...
-				http.Error(w, "Invalid metric value", http.StatusNotFound)
+				http.Error(w, "Invalid metric value", http.StatusBadRequest)
 				return
 			}
 			// Set the value of the counter metric in the storage
