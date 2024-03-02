@@ -1,18 +1,18 @@
 package main
 
 import (
-    "net/http"
-    "strconv"
-    "strings"
-    "sync"
+	"net/http"
+	"strconv"
+	"strings"
+	"sync"
 )
 
 // MemStorage is a simple in-memory storage for metrics
 // It uses two sync.Map to store gauge and counter metrics
 // I had to change the type of the map to avoid concurrent map writes
 type MemStorage struct {
-    gaugeMetrics   sync.Map
-    counterMetrics sync.Map
+	gaugeMetrics   sync.Map
+	counterMetrics sync.Map
 }
 
 // Metric is a generic metric type that can be used for any type of metric
@@ -39,39 +39,39 @@ type StorageInterface interface {
 
 // SetGauge sets the value of a gauge
 func (m *MemStorage) SetGauge(key string, value float64) {
-    m.gaugeMetrics.Store(key, value)
+	m.gaugeMetrics.Store(key, value)
 }
 
 // GetGauge returns the value of a gauge
 func (m *MemStorage) GetGauge(key string) (float64, bool) {
-    value, exists := m.gaugeMetrics.Load(key)
-    if exists {
-        return value.(float64), exists
-    }
-    return 0, exists
+	value, exists := m.gaugeMetrics.Load(key)
+	if exists {
+		return value.(float64), exists
+	}
+	return 0, exists
 }
 
 // SetCounter sets the value of a counter
 func (m *MemStorage) SetCounter(key string, value int64) {
-    actual, loaded := m.counterMetrics.LoadOrStore(key, value)
-    if loaded {
-        m.counterMetrics.Store(key, actual.(int64)+value)
-    }
+	actual, loaded := m.counterMetrics.LoadOrStore(key, value)
+	if loaded {
+		m.counterMetrics.Store(key, actual.(int64)+value)
+	}
 }
 
 // GetCounter returns the value of a counter
 func (m *MemStorage) GetCounter(key string) (int64, bool) {
-    value, exists := m.counterMetrics.Load(key)
-    if exists {
-        return value.(int64), exists
-    }
-    return 0, exists
+	value, exists := m.counterMetrics.Load(key)
+	if exists {
+		return value.(int64), exists
+	}
+	return 0, exists
 }
 
 // Delete removes a metric from the storage
 func (m *MemStorage) Delete(key string) {
-    m.gaugeMetrics.Delete(key)
-    m.counterMetrics.Delete(key)
+	m.gaugeMetrics.Delete(key)
+	m.counterMetrics.Delete(key)
 }
 
 func main() {
@@ -99,7 +99,8 @@ func main() {
 		// Check if the URL path has the correct format
 		if len(parts) != 5 {
 			// If it doesn't, return a 400 Bad Request error
-			http.Error(w, "Invalid URL format", http.StatusBadRequest)
+			// Originaly was 400, but tests ask for 404...
+			http.Error(w, "Invalid URL format", http.StatusNotFound)
 			return
 		}
 
@@ -108,14 +109,15 @@ func main() {
 
 		// switch statement to handle different metric types
 		switch metricType {
-			// If the metric type is "gauge", parse the metric value as a float64
+		// If the metric type is "gauge", parse the metric value as a float64
 		case "gauge":
 			//ParseFloat converts the string s to a floating-point number.
 			value, err := strconv.ParseFloat(metricValue, 64)
 			//Check if there is an error
 			if err != nil {
 				// If there is, return a 400 Bad Request error
-				http.Error(w, "Invalid metric value", http.StatusBadRequest)
+				// Originaly was 400, but tests ask for 404...
+				http.Error(w, "Invalid metric value", http.StatusNotFound)
 				return
 			}
 			// Set the value of the gauge metric in the storage
@@ -127,7 +129,8 @@ func main() {
 			//Check if there is an error
 			if err != nil {
 				// If there is, return a 400 Bad Request error
-				http.Error(w, "Invalid metric value", http.StatusBadRequest)
+				// Originaly was 400, but tests ask for 404...
+				http.Error(w, "Invalid metric value", http.StatusNotFound)
 				return
 			}
 			// Set the value of the counter metric in the storage
