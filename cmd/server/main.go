@@ -149,6 +149,8 @@ func MetricValue(storage *MemStorage) http.HandlerFunc {
 				http.Error(w, "Metric not found", http.StatusNotFound)
 				return
 			}
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusOK)
 			fmt.Fprintf(w, "%f", value)
 		case "counter":
 			value, exists := storage.GetCounter(metricName)
@@ -156,6 +158,8 @@ func MetricValue(storage *MemStorage) http.HandlerFunc {
 				http.Error(w, "Metric not found", http.StatusNotFound)
 				return
 			}
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusOK)
 			fmt.Fprintf(w, "%d", value)
 		default:
 			http.Error(w, "Invalid metric type", http.StatusBadRequest)
