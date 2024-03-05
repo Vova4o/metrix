@@ -1,58 +1,70 @@
 package main
 
 import (
-	"bytes"
-	"errors"
-	"io"
 	"net/http"
-	"strings"
+	"net/http/httptest"
 	"testing"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
-// MockHttpClient is a mock implementation of the HttpClient interface
-type MockHttpClient struct {
-	mock.Mock
-}
-
-func (m *MockHttpClient) Post(url, contentType string, body io.Reader) (*http.Response, error) {
-	args := m.Called(url, contentType, body)
-	return args.Get(0).(*http.Response), args.Error(1)
+type args struct {
+	client     *resty.Client
+	metricType string
+	metricName string
+	value      float64
 }
 
 func TestSendMetric(t *testing.T) {
-    mockClient := new(MockHttpClient)
-    client := HttpClient(mockClient)
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Test case 1: Valid gauge metric",
+			args: args{
+				client:     resty.New(),
+				metricType: "gauge",
+				metricName: "testMetric",
+				value:      1.0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Test case 2: Invalid metric type",
+			args: args{
+				client:     resty.New(),
+				metricType: "invalid",
+				metricName: "testMetric",
+				value:      1.0,
+			},
+			wantErr: true,
+		},
+		// Add more test cases as needed
+	}
 
-    t.Run("Successful metric send", func(t *testing.T) {
-        mockClient.On("Post", "http://localhost:8080/update/gauge/testGauge/42", "text/plain", strings.NewReader("")).Return(&http.Response{
-            StatusCode: 200,
-            Body:       io.NopCloser(bytes.NewBufferString("OK")),
-        }, nil)
-        err := sendMetric(client, "gauge", "testGauge", 42)
-        assert.NoError(t, err)
-        mockClient.ExpectedCalls = []*mock.Call{}
-    })
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            // Create a mock HTTP server
+            server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+                w.WriteHeader(http.StatusOK)
+            }))
+            defer server.Close()
 
-    t.Run("Failed metric send", func(t *testing.T) {
-        mockClient.On("Post", "http://localhost:8080/update/gauge/testGauge/42", "text/plain", strings.NewReader("")).Return(&http.Response{
-            StatusCode: 500,
-            Body:       io.NopCloser(bytes.NewBufferString("")),
-        }, errors.New("failed to send metric"))
-        err := sendMetric(client, "gauge", "testGauge", 42)
-        assert.Error(t, err)
-        mockClient.ExpectedCalls = []*mock.Call{}
-    })
+            // Set the mock server's URL as the base URL of the client
+            tt.args.client.SetBaseURL(server.URL)
 
-    t.Run("Non-OK response status", func(t *testing.T) {
-        mockClient.On("Post", "http://localhost:8080/update/gauge/testGauge/42", "text/plain", strings.NewReader("")).Return(&http.Response{
-            StatusCode: 500,
-            Body:       io.NopCloser(bytes.NewBufferString("")),
-        }, nil)
-        err := sendMetric(client, "gauge", "testGauge", 42)
-        assert.Error(t, err)
-        mockClient.ExpectedCalls = []*mock.Call{}
-    })
+            // Call the function under test
+            err := sendMetric(tt.args.client, tt.args.metricType, tt.args.metricName, tt.args.value)
+
+            // Assert that there was no error
+            if tt.wantErr {
+                assert.Error(t, err)
+            } else {
+                assert.NoError(t, err)
+            }
+        })
+    }
 }

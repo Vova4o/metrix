@@ -3,19 +3,19 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io"
 	"math/rand"
 	"net/http"
 	"runtime"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
+
+	"github.com/go-resty/resty/v2"
 )
 
 // HttpClient is an interface for making HTTP requests
 type HttpClient interface {
-	Post(url, contentType string, body io.Reader) (*http.Response, error)
+	R() *resty.Request
 }
 
 // some constants to run the agent
@@ -96,7 +96,7 @@ func pollMetrics() {
 
 // reportMetrics sends the metrics to the server
 func reportMetrics() {
-	client := &http.Client{}
+	client := resty.New()
 	errs := make(chan error)
 	var wg sync.WaitGroup
 
@@ -141,14 +141,16 @@ func sendMetric(client HttpClient, metricType, metricName string, metricValue fl
 	}
 	url := fmt.Sprintf("%s/%s/%s/%s", serverURL, metricType, metricName, strconv.FormatFloat(metricValue, 'f', -1, 64))
 
-	resp, err := client.Post(url, "text/plain", strings.NewReader(""))
+	resp, err := client.R().
+		SetHeader("Content-Type", "text/plain").
+		Post(url)
+
 	if err != nil {
 		return fmt.Errorf("failed to send %s metric %s: %v", metricType, metricName, err)
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("server returned non-OK status for %s metric %s: %v", metricType, metricName, resp.Status)
+	if resp.StatusCode() != http.StatusOK {
+		return fmt.Errorf("server returned non-OK status for %s metric %s: %v", metricType, metricName, resp.Status())
 	}
 
 	return nil
