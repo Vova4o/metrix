@@ -164,6 +164,8 @@ func MetricValue(storage *MemStorage) http.HandlerFunc {
 }
 
 func main() {
+	parseFlags()
+
 	mux := chi.NewRouter()
 
 	storage := &MemStorage{
@@ -177,5 +179,5 @@ func main() {
 
 	mux.Get("/value/{metricType}/{metricName}", MetricValue(storage))
 
-	http.ListenAndServe("localhost:8080", mux)
+	http.ListenAndServe(*serverAddress, mux)
 }
