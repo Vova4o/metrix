@@ -1,13 +1,22 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"math/rand"
 	"net/http"
 	"runtime"
 	"strconv"
+	"strings"
+	"sync"
 	"time"
 )
+
+// HttpClient is an interface for making HTTP requests
+type HttpClient interface {
+	Post(url, contentType string, body io.Reader) (*http.Response, error)
+}
 
 // some constants to run the agent
 const (
@@ -87,36 +96,60 @@ func pollMetrics() {
 
 // reportMetrics sends the metrics to the server
 func reportMetrics() {
-	// Send the metrics to the server in parallel to make it faster
-	// type of gauge
+	client := &http.Client{}
+	errs := make(chan error)
+	var wg sync.WaitGroup
+
 	for metricName, metricValue := range gaugeMetrics {
-		go sendMetric("gauge", metricName, metricValue)
+		wg.Add(1)
+		go func(name string, value float64) {
+			defer wg.Done()
+			err := sendMetric(client, "gauge", name, value)
+			if err != nil {
+				errs <- fmt.Errorf("error sending gauge metric %s: %v", name, err)
+			}
+		}(metricName, metricValue)
 	}
 
-	// Send the metrics to the server in parallel to make it faster
-	// type of counter, well its only one for now but we can add more
 	for metricName, metricValue := range counterMetrics {
-		go sendMetric("counter", metricName, float64(metricValue))
+		wg.Add(1)
+		go func(name string, value float64) {
+			defer wg.Done()
+			err := sendMetric(client, "counter", name, value)
+			if err != nil {
+				errs <- fmt.Errorf("error sending counter metric %s: %v", name, err)
+			}
+		}(metricName, float64(metricValue))
+	}
+
+	// Close the errs channel after all goroutines have finished
+	go func() {
+		wg.Wait()
+		close(errs)
+	}()
+
+	// Print all errors
+	for err := range errs {
+		fmt.Println(err)
 	}
 }
 
 // sendMetric sends a metric to the server
-func sendMetric(metricType, metricName string, metricValue float64) {
-	//Prepare the URL for the request to the server with the metric data
+func sendMetric(client HttpClient, metricType, metricName string, metricValue float64) error {
+	if client == nil {
+		return errors.New("client is nil")
+	}
 	url := fmt.Sprintf("%s/%s/%s/%s", serverURL, metricType, metricName, strconv.FormatFloat(metricValue, 'f', -1, 64))
 
-	//Send the metric to the server
-	//Post issues a POST to the specified URL, as a text/plain, with a nil body.
-	resp, err := http.Post(url, "text/plain", nil)
+	resp, err := client.Post(url, "text/plain", strings.NewReader(""))
 	if err != nil {
-		fmt.Printf("Failed to send %s metric %s: %v\n", metricType, metricName, err)
-		return
+		return fmt.Errorf("failed to send %s metric %s: %v", metricType, metricName, err)
 	}
-	//Close the response body
 	defer resp.Body.Close()
 
-	//Check if the server returned a non-OK status
 	if resp.StatusCode != http.StatusOK {
-		fmt.Printf("Server returned non-OK status for %s metric %s: %v\n", metricType, metricName, resp.Status)
+		return fmt.Errorf("server returned non-OK status for %s metric %s: %v", metricType, metricName, resp.Status)
 	}
+
+	return nil
 }

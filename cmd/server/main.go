@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"sync"
+
+	"github.com/go-chi/chi/v5"
 )
 
 // MemStorage is a simple in-memory storage for metrics
@@ -74,76 +76,106 @@ func (m *MemStorage) Delete(key string) {
 	m.counterMetrics.Delete(key)
 }
 
-func main() {
-	// Create a new ServeMux
-	mux := http.NewServeMux()
+func handleUpdate(storage *MemStorage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		metricType := chi.URLParam(r, "metricType")
+		metricName := chi.URLParam(r, "metricName")
+		metricValue := chi.URLParam(r, "metricValue")
 
-	// Create a new MemStorage that will be used to store the metrics
-	// we create new storage inside the main function to make it unique for each instance of the server
+		switch metricType {
+		case "gauge":
+			value, err := strconv.ParseFloat(metricValue, 64)
+			if err != nil {
+				http.Error(w, "Invalid metric value", http.StatusBadRequest)
+				return
+			}
+			storage.SetGauge(metricName, value)
+		case "counter":
+			value, err := strconv.ParseInt(metricValue, 10, 64)
+			if err != nil {
+				http.Error(w, "Invalid metric value", http.StatusBadRequest)
+				return
+			}
+			storage.SetCounter(metricName, value)
+		default:
+			http.Error(w, "Invalid metric type", http.StatusBadRequest)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func ShowMetrics(storage *MemStorage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get all the gauge metrics
+		gaugeMetrics := map[string]float64{}
+		storage.gaugeMetrics.Range(func(key, value interface{}) bool {
+			gaugeMetrics[key.(string)] = value.(float64)
+			return true
+		})
+
+		// Get all the counter metrics
+		counterMetrics := map[string]int64{}
+		storage.counterMetrics.Range(func(key, value interface{}) bool {
+			counterMetrics[key.(string)] = value.(int64)
+			return true
+		})
+
+		// Start the HTML response
+		w.Header().Set("Content-Type", "text/html")
+		fmt.Fprint(w, "<html><body>")
+		fmt.Fprint(w, "<h1>Gauge Metrics</h1><ul>")
+		for key, value := range gaugeMetrics {
+			fmt.Fprintf(w, "<li>%s: %f</li>", key, value)
+		}
+		fmt.Fprint(w, "</ul><h1>Counter Metrics</h1><ul>")
+		for key, value := range counterMetrics {
+			fmt.Fprintf(w, "<li>%s: %d</li>", key, value)
+		}
+		fmt.Fprint(w, "</ul></body></html>")
+	}
+}
+
+func MetricValue(storage *MemStorage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		metricType := chi.URLParam(r, "metricType")
+		metricName := chi.URLParam(r, "metricName")
+
+		switch metricType {
+		case "gauge":
+			value, exists := storage.GetGauge(metricName)
+			if !exists {
+				http.Error(w, "Metric not found", http.StatusNotFound)
+				return
+			}
+			fmt.Fprintf(w, "%f", value)
+		case "counter":
+			value, exists := storage.GetCounter(metricName)
+			if !exists {
+				http.Error(w, "Metric not found", http.StatusNotFound)
+				return
+			}
+			fmt.Fprintf(w, "%d", value)
+		default:
+			http.Error(w, "Invalid metric type", http.StatusBadRequest)
+		}
+	}
+}
+
+func main() {
+	mux := chi.NewRouter()
+
 	storage := &MemStorage{
 		gaugeMetrics:   sync.Map{},
 		counterMetrics: sync.Map{},
 	}
 
-	// Register a handler for the /metrics endpoint
-	mux.HandleFunc("/update/", func(w http.ResponseWriter, r *http.Request) {
-		// Check if the request method is POST
-		if r.Method != http.MethodPost {
-			// If it's not, return a 405 Method Not Allowed error
-			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-			return
-		}
+	mux.Post("/update/{metricType}/{metricName}/{metricValue}", handleUpdate(storage))
 
-		// Split the URL path into parts
-		parts := strings.Split(r.URL.Path, "/")
-		// Check if the URL path has the correct format
-		if len(parts) != 5 {
-			// If it doesn't, return a 400 Bad Request error
-			// Originaly was 400, but tests ask for 404...
-			http.Error(w, "Invalid URL format", http.StatusNotFound)
-			return
-		}
+	mux.Get("/", ShowMetrics(storage))
 
-		// Extract the metric type, name, and value from the URL path
-		metricType, metricName, metricValue := parts[2], parts[3], parts[4]
+	mux.Get("/value/{metricType}/{metricName}", MetricValue(storage))
 
-		// switch statement to handle different metric types
-		switch metricType {
-		// If the metric type is "gauge", parse the metric value as a float64
-		case "gauge":
-			//ParseFloat converts the string s to a floating-point number.
-			value, err := strconv.ParseFloat(metricValue, 64)
-			//Check if there is an error
-			if err != nil {
-				// If there is, return a 400 Bad Request error
-				http.Error(w, "Invalid metric value", http.StatusBadRequest)
-				return
-			}
-			// Set the value of the gauge metric in the storage
-			storage.SetGauge(metricName, value)
-			// If the metric type is "counter", parse the metric value as an int64
-		case "counter":
-			//ParseInt interprets a string.
-			value, err := strconv.ParseInt(metricValue, 10, 64)
-			//Check if there is an error
-			if err != nil {
-				// If there is, return a 400 Bad Request error
-				http.Error(w, "Invalid metric value", http.StatusBadRequest)
-				return
-			}
-			// Set the value of the counter metric in the storage
-			storage.SetCounter(metricName, value)
-			// If the metric type is neither "gauge" nor "counter", return a 400 Bad Request error
-		default:
-			//Send an error response and status code 400
-			http.Error(w, "Invalid metric type", http.StatusBadRequest)
-			return
-		}
-
-		// Return a 200 OK status code
-		w.WriteHeader(http.StatusOK)
-	})
-
-	//Start the server on port 8080
 	http.ListenAndServe("localhost:8080", mux)
 }
