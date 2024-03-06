@@ -172,3 +172,177 @@
 2024/03/06 12:41:39 error sending gauge metric GCSys: failed to send gauge metric GCSys: Post "http://localhost:8080/update/gauge/GCSys/1862632.00": dial tcp [::1]:8080: connect: connection refused
 2024/03/06 12:41:39 error sending gauge metric NextGC: failed to send gauge metric NextGC: Post "http://localhost:8080/update/gauge/NextGC/4194304.00": dial tcp [::1]:8080: connect: connection refused
 2024/03/06 12:41:39 error sending gauge metric HeapAlloc: failed to send gauge metric HeapAlloc: Post "http://localhost:8080/update/gauge/HeapAlloc/2457296.00": dial tcp [::1]:8080: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric HeapReleased: Post "http://localhost:8090/update/gauge/HeapReleased/2908160.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric GCSys: Post "http://localhost:8090/update/gauge/GCSys/1745440.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric GCSys: failed to send gauge metric GCSys: Post "http://localhost:8090/update/gauge/GCSys/1745440.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric Alloc: Post "http://localhost:8090/update/gauge/Alloc/239776.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric Lookups: Post "http://localhost:8090/update/gauge/Lookups/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric HeapSys: Post "http://localhost:8090/update/gauge/HeapSys/3833856.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send counter metric PoolCount: Post "http://localhost:8090/update/counter/PoolCount/5.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric PauseTotalNs: Post "http://localhost:8090/update/gauge/PauseTotalNs/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric MCacheSys: Post "http://localhost:8090/update/gauge/MCacheSys/15600.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric MSpanInuse: Post "http://localhost:8090/update/gauge/MSpanInuse/34560.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric HeapIdle: Post "http://localhost:8090/update/gauge/HeapIdle/2940928.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric TotalAlloc: Post "http://localhost:8090/update/gauge/TotalAlloc/239776.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric BuckHashSys: Post "http://localhost:8090/update/gauge/BuckHashSys/7648.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric OtherSys: Post "http://localhost:8090/update/gauge/OtherSys/954336.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric HeapAlloc: Post "http://localhost:8090/update/gauge/HeapAlloc/239776.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric LastGC: Post "http://localhost:8090/update/gauge/LastGC/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric NextGC: Post "http://localhost:8090/update/gauge/NextGC/4194304.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric StackInuse: Post "http://localhost:8090/update/gauge/StackInuse/360448.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric Mallocs: Post "http://localhost:8090/update/gauge/Mallocs/476.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric NumForcedGC: Post "http://localhost:8090/update/gauge/NumForcedGC/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric HeapInuse: Post "http://localhost:8090/update/gauge/HeapInuse/892928.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric StackSys: Post "http://localhost:8090/update/gauge/StackSys/360448.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric MCacheInuse: Post "http://localhost:8090/update/gauge/MCacheInuse/13200.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric GCCPUFraction: Post "http://localhost:8090/update/gauge/GCCPUFraction/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric MSpanSys: Post "http://localhost:8090/update/gauge/MSpanSys/48960.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric Frees: Post "http://localhost:8090/update/gauge/Frees/14.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric HeapObjects: Post "http://localhost:8090/update/gauge/HeapObjects/462.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric NumGC: Post "http://localhost:8090/update/gauge/NumGC/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric Sys: Post "http://localhost:8090/update/gauge/Sys/6966288.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 failed to send gauge metric RandomValue: Post "http://localhost:8090/update/gauge/RandomValue/0.32": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric HeapReleased: failed to send gauge metric HeapReleased: Post "http://localhost:8090/update/gauge/HeapReleased/2908160.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric NumGC: failed to send gauge metric NumGC: Post "http://localhost:8090/update/gauge/NumGC/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric GCSys: failed to send gauge metric GCSys: Post "http://localhost:8090/update/gauge/GCSys/1745440.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric Alloc: failed to send gauge metric Alloc: Post "http://localhost:8090/update/gauge/Alloc/239776.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric Lookups: failed to send gauge metric Lookups: Post "http://localhost:8090/update/gauge/Lookups/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric HeapSys: failed to send gauge metric HeapSys: Post "http://localhost:8090/update/gauge/HeapSys/3833856.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending counter metric PoolCount: failed to send counter metric PoolCount: Post "http://localhost:8090/update/counter/PoolCount/5.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric MCacheSys: failed to send gauge metric MCacheSys: Post "http://localhost:8090/update/gauge/MCacheSys/15600.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric MSpanInuse: failed to send gauge metric MSpanInuse: Post "http://localhost:8090/update/gauge/MSpanInuse/34560.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric BuckHashSys: failed to send gauge metric BuckHashSys: Post "http://localhost:8090/update/gauge/BuckHashSys/7648.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric OtherSys: failed to send gauge metric OtherSys: Post "http://localhost:8090/update/gauge/OtherSys/954336.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric LastGC: failed to send gauge metric LastGC: Post "http://localhost:8090/update/gauge/LastGC/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric PauseTotalNs: failed to send gauge metric PauseTotalNs: Post "http://localhost:8090/update/gauge/PauseTotalNs/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric NextGC: failed to send gauge metric NextGC: Post "http://localhost:8090/update/gauge/NextGC/4194304.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric HeapAlloc: failed to send gauge metric HeapAlloc: Post "http://localhost:8090/update/gauge/HeapAlloc/239776.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric TotalAlloc: failed to send gauge metric TotalAlloc: Post "http://localhost:8090/update/gauge/TotalAlloc/239776.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric StackInuse: failed to send gauge metric StackInuse: Post "http://localhost:8090/update/gauge/StackInuse/360448.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric HeapIdle: failed to send gauge metric HeapIdle: Post "http://localhost:8090/update/gauge/HeapIdle/2940928.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric Mallocs: failed to send gauge metric Mallocs: Post "http://localhost:8090/update/gauge/Mallocs/476.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric NumForcedGC: failed to send gauge metric NumForcedGC: Post "http://localhost:8090/update/gauge/NumForcedGC/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric HeapInuse: failed to send gauge metric HeapInuse: Post "http://localhost:8090/update/gauge/HeapInuse/892928.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric StackSys: failed to send gauge metric StackSys: Post "http://localhost:8090/update/gauge/StackSys/360448.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric MCacheInuse: failed to send gauge metric MCacheInuse: Post "http://localhost:8090/update/gauge/MCacheInuse/13200.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric GCCPUFraction: failed to send gauge metric GCCPUFraction: Post "http://localhost:8090/update/gauge/GCCPUFraction/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric MSpanSys: failed to send gauge metric MSpanSys: Post "http://localhost:8090/update/gauge/MSpanSys/48960.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric HeapObjects: failed to send gauge metric HeapObjects: Post "http://localhost:8090/update/gauge/HeapObjects/462.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric Frees: failed to send gauge metric Frees: Post "http://localhost:8090/update/gauge/Frees/14.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric RandomValue: failed to send gauge metric RandomValue: Post "http://localhost:8090/update/gauge/RandomValue/0.32": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric Sys: failed to send gauge metric Sys: Post "http://localhost:8090/update/gauge/Sys/6966288.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric HeapReleased: failed to send gauge metric HeapReleased: Post "http://localhost:8090/update/gauge/HeapReleased/2908160.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric NumGC: failed to send gauge metric NumGC: Post "http://localhost:8090/update/gauge/NumGC/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric Alloc: failed to send gauge metric Alloc: Post "http://localhost:8090/update/gauge/Alloc/239776.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric Lookups: failed to send gauge metric Lookups: Post "http://localhost:8090/update/gauge/Lookups/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric HeapSys: failed to send gauge metric HeapSys: Post "http://localhost:8090/update/gauge/HeapSys/3833856.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending counter metric PoolCount: failed to send counter metric PoolCount: Post "http://localhost:8090/update/counter/PoolCount/5.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric MCacheSys: failed to send gauge metric MCacheSys: Post "http://localhost:8090/update/gauge/MCacheSys/15600.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric MSpanInuse: failed to send gauge metric MSpanInuse: Post "http://localhost:8090/update/gauge/MSpanInuse/34560.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric BuckHashSys: failed to send gauge metric BuckHashSys: Post "http://localhost:8090/update/gauge/BuckHashSys/7648.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric OtherSys: failed to send gauge metric OtherSys: Post "http://localhost:8090/update/gauge/OtherSys/954336.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric LastGC: failed to send gauge metric LastGC: Post "http://localhost:8090/update/gauge/LastGC/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric PauseTotalNs: failed to send gauge metric PauseTotalNs: Post "http://localhost:8090/update/gauge/PauseTotalNs/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric NextGC: failed to send gauge metric NextGC: Post "http://localhost:8090/update/gauge/NextGC/4194304.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric HeapAlloc: failed to send gauge metric HeapAlloc: Post "http://localhost:8090/update/gauge/HeapAlloc/239776.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric TotalAlloc: failed to send gauge metric TotalAlloc: Post "http://localhost:8090/update/gauge/TotalAlloc/239776.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric StackInuse: failed to send gauge metric StackInuse: Post "http://localhost:8090/update/gauge/StackInuse/360448.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric HeapIdle: failed to send gauge metric HeapIdle: Post "http://localhost:8090/update/gauge/HeapIdle/2940928.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric Mallocs: failed to send gauge metric Mallocs: Post "http://localhost:8090/update/gauge/Mallocs/476.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric NumForcedGC: failed to send gauge metric NumForcedGC: Post "http://localhost:8090/update/gauge/NumForcedGC/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric HeapInuse: failed to send gauge metric HeapInuse: Post "http://localhost:8090/update/gauge/HeapInuse/892928.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric StackSys: failed to send gauge metric StackSys: Post "http://localhost:8090/update/gauge/StackSys/360448.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric MCacheInuse: failed to send gauge metric MCacheInuse: Post "http://localhost:8090/update/gauge/MCacheInuse/13200.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric GCCPUFraction: failed to send gauge metric GCCPUFraction: Post "http://localhost:8090/update/gauge/GCCPUFraction/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric MSpanSys: failed to send gauge metric MSpanSys: Post "http://localhost:8090/update/gauge/MSpanSys/48960.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric HeapObjects: failed to send gauge metric HeapObjects: Post "http://localhost:8090/update/gauge/HeapObjects/462.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric Frees: failed to send gauge metric Frees: Post "http://localhost:8090/update/gauge/Frees/14.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric RandomValue: failed to send gauge metric RandomValue: Post "http://localhost:8090/update/gauge/RandomValue/0.32": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:30 error sending gauge metric Sys: failed to send gauge metric Sys: Post "http://localhost:8090/update/gauge/Sys/6966288.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric StackInuse: Post "http://localhost:8090/update/gauge/StackInuse/786432.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric StackInuse: failed to send gauge metric StackInuse: Post "http://localhost:8090/update/gauge/StackInuse/786432.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric StackInuse: failed to send gauge metric StackInuse: Post "http://localhost:8090/update/gauge/StackInuse/786432.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric LastGC: Post "http://localhost:8090/update/gauge/LastGC/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric LastGC: failed to send gauge metric LastGC: Post "http://localhost:8090/update/gauge/LastGC/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric LastGC: failed to send gauge metric LastGC: Post "http://localhost:8090/update/gauge/LastGC/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric MCacheInuse: Post "http://localhost:8090/update/gauge/MCacheInuse/13200.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric GCCPUFraction: Post "http://localhost:8090/update/gauge/GCCPUFraction/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric GCCPUFraction: failed to send gauge metric GCCPUFraction: Post "http://localhost:8090/update/gauge/GCCPUFraction/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric GCCPUFraction: failed to send gauge metric GCCPUFraction: Post "http://localhost:8090/update/gauge/GCCPUFraction/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric MCacheInuse: failed to send gauge metric MCacheInuse: Post "http://localhost:8090/update/gauge/MCacheInuse/13200.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric MCacheInuse: failed to send gauge metric MCacheInuse: Post "http://localhost:8090/update/gauge/MCacheInuse/13200.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric HeapAlloc: Post "http://localhost:8090/update/gauge/HeapAlloc/988952.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric HeapAlloc: failed to send gauge metric HeapAlloc: Post "http://localhost:8090/update/gauge/HeapAlloc/988952.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric HeapAlloc: failed to send gauge metric HeapAlloc: Post "http://localhost:8090/update/gauge/HeapAlloc/988952.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric OtherSys: Post "http://localhost:8090/update/gauge/OtherSys/2865032.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric OtherSys: failed to send gauge metric OtherSys: Post "http://localhost:8090/update/gauge/OtherSys/2865032.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric OtherSys: failed to send gauge metric OtherSys: Post "http://localhost:8090/update/gauge/OtherSys/2865032.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric Sys: Post "http://localhost:8090/update/gauge/Sys/13257744.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric Sys: failed to send gauge metric Sys: Post "http://localhost:8090/update/gauge/Sys/13257744.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric MSpanInuse: Post "http://localhost:8090/update/gauge/MSpanInuse/126720.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric StackSys: Post "http://localhost:8090/update/gauge/StackSys/786432.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric StackSys: failed to send gauge metric StackSys: Post "http://localhost:8090/update/gauge/StackSys/786432.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric Frees: Post "http://localhost:8090/update/gauge/Frees/251.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric GCSys: Post "http://localhost:8090/update/gauge/GCSys/1850296.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric HeapReleased: Post "http://localhost:8090/update/gauge/HeapReleased/3260416.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric MSpanSys: Post "http://localhost:8090/update/gauge/MSpanSys/130560.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric MSpanSys: failed to send gauge metric MSpanSys: Post "http://localhost:8090/update/gauge/MSpanSys/130560.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric NextGC: Post "http://localhost:8090/update/gauge/NextGC/4194304.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric NextGC: failed to send gauge metric NextGC: Post "http://localhost:8090/update/gauge/NextGC/4194304.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric HeapReleased: failed to send gauge metric HeapReleased: Post "http://localhost:8090/update/gauge/HeapReleased/3260416.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric Alloc: Post "http://localhost:8090/update/gauge/Alloc/988952.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric Alloc: failed to send gauge metric Alloc: Post "http://localhost:8090/update/gauge/Alloc/988952.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric HeapIdle: Post "http://localhost:8090/update/gauge/HeapIdle/3981312.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric GCSys: failed to send gauge metric GCSys: Post "http://localhost:8090/update/gauge/GCSys/1850296.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric HeapObjects: Post "http://localhost:8090/update/gauge/HeapObjects/5204.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric HeapObjects: failed to send gauge metric HeapObjects: Post "http://localhost:8090/update/gauge/HeapObjects/5204.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric MSpanInuse: failed to send gauge metric MSpanInuse: Post "http://localhost:8090/update/gauge/MSpanInuse/126720.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric Lookups: Post "http://localhost:8090/update/gauge/Lookups/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric Lookups: failed to send gauge metric Lookups: Post "http://localhost:8090/update/gauge/Lookups/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric HeapSys: Post "http://localhost:8090/update/gauge/HeapSys/7602176.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric MCacheSys: Post "http://localhost:8090/update/gauge/MCacheSys/15600.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric PauseTotalNs: Post "http://localhost:8090/update/gauge/PauseTotalNs/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric MCacheSys: failed to send gauge metric MCacheSys: Post "http://localhost:8090/update/gauge/MCacheSys/15600.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric PauseTotalNs: failed to send gauge metric PauseTotalNs: Post "http://localhost:8090/update/gauge/PauseTotalNs/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric NumGC: Post "http://localhost:8090/update/gauge/NumGC/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric NumGC: failed to send gauge metric NumGC: Post "http://localhost:8090/update/gauge/NumGC/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric NumForcedGC: Post "http://localhost:8090/update/gauge/NumForcedGC/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric NumForcedGC: failed to send gauge metric NumForcedGC: Post "http://localhost:8090/update/gauge/NumForcedGC/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric RandomValue: Post "http://localhost:8090/update/gauge/RandomValue/0.13": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric RandomValue: failed to send gauge metric RandomValue: Post "http://localhost:8090/update/gauge/RandomValue/0.13": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric Mallocs: Post "http://localhost:8090/update/gauge/Mallocs/5455.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric Mallocs: failed to send gauge metric Mallocs: Post "http://localhost:8090/update/gauge/Mallocs/5455.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric Frees: failed to send gauge metric Frees: Post "http://localhost:8090/update/gauge/Frees/251.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric HeapInuse: Post "http://localhost:8090/update/gauge/HeapInuse/3620864.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric HeapInuse: failed to send gauge metric HeapInuse: Post "http://localhost:8090/update/gauge/HeapInuse/3620864.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send counter metric PoolCount: Post "http://localhost:8090/update/counter/PoolCount/10.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending counter metric PoolCount: failed to send counter metric PoolCount: Post "http://localhost:8090/update/counter/PoolCount/10.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric BuckHashSys: Post "http://localhost:8090/update/gauge/BuckHashSys/7648.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric BuckHashSys: failed to send gauge metric BuckHashSys: Post "http://localhost:8090/update/gauge/BuckHashSys/7648.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric Sys: failed to send gauge metric Sys: Post "http://localhost:8090/update/gauge/Sys/13257744.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric HeapIdle: failed to send gauge metric HeapIdle: Post "http://localhost:8090/update/gauge/HeapIdle/3981312.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric HeapSys: failed to send gauge metric HeapSys: Post "http://localhost:8090/update/gauge/HeapSys/7602176.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 failed to send gauge metric TotalAlloc: Post "http://localhost:8090/update/gauge/TotalAlloc/988952.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric TotalAlloc: failed to send gauge metric TotalAlloc: Post "http://localhost:8090/update/gauge/TotalAlloc/988952.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric StackSys: failed to send gauge metric StackSys: Post "http://localhost:8090/update/gauge/StackSys/786432.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric MSpanSys: failed to send gauge metric MSpanSys: Post "http://localhost:8090/update/gauge/MSpanSys/130560.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric NextGC: failed to send gauge metric NextGC: Post "http://localhost:8090/update/gauge/NextGC/4194304.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric HeapReleased: failed to send gauge metric HeapReleased: Post "http://localhost:8090/update/gauge/HeapReleased/3260416.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric Alloc: failed to send gauge metric Alloc: Post "http://localhost:8090/update/gauge/Alloc/988952.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric GCSys: failed to send gauge metric GCSys: Post "http://localhost:8090/update/gauge/GCSys/1850296.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric HeapObjects: failed to send gauge metric HeapObjects: Post "http://localhost:8090/update/gauge/HeapObjects/5204.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric MSpanInuse: failed to send gauge metric MSpanInuse: Post "http://localhost:8090/update/gauge/MSpanInuse/126720.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric Lookups: failed to send gauge metric Lookups: Post "http://localhost:8090/update/gauge/Lookups/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric MCacheSys: failed to send gauge metric MCacheSys: Post "http://localhost:8090/update/gauge/MCacheSys/15600.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric PauseTotalNs: failed to send gauge metric PauseTotalNs: Post "http://localhost:8090/update/gauge/PauseTotalNs/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric NumGC: failed to send gauge metric NumGC: Post "http://localhost:8090/update/gauge/NumGC/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric NumForcedGC: failed to send gauge metric NumForcedGC: Post "http://localhost:8090/update/gauge/NumForcedGC/0.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric RandomValue: failed to send gauge metric RandomValue: Post "http://localhost:8090/update/gauge/RandomValue/0.13": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric Mallocs: failed to send gauge metric Mallocs: Post "http://localhost:8090/update/gauge/Mallocs/5455.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric Frees: failed to send gauge metric Frees: Post "http://localhost:8090/update/gauge/Frees/251.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric HeapInuse: failed to send gauge metric HeapInuse: Post "http://localhost:8090/update/gauge/HeapInuse/3620864.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending counter metric PoolCount: failed to send counter metric PoolCount: Post "http://localhost:8090/update/counter/PoolCount/10.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric BuckHashSys: failed to send gauge metric BuckHashSys: Post "http://localhost:8090/update/gauge/BuckHashSys/7648.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric HeapIdle: failed to send gauge metric HeapIdle: Post "http://localhost:8090/update/gauge/HeapIdle/3981312.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric HeapSys: failed to send gauge metric HeapSys: Post "http://localhost:8090/update/gauge/HeapSys/7602176.00": dial tcp [::1]:8090: connect: connection refused
+2024/03/06 17:04:40 error sending gauge metric TotalAlloc: failed to send gauge metric TotalAlloc: Post "http://localhost:8090/update/gauge/TotalAlloc/988952.00": dial tcp [::1]:8090: connect: connection refused

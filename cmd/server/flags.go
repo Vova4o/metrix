@@ -2,20 +2,26 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
 	"strings"
 )
 
-var serverAddress = flag.String("a", "localhost:8080", "HTTP server address")
+var serverAddress = flag.String("a", "", "HTTP server address")
 
 func parseFlags() {
 	// Parse the flags
-	err := flag.CommandLine.Parse(os.Args[1:])
-	if err != nil {
-		// If there was an error, print it and exit with a non-zero status code
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+	flag.Parse()
+
+	// Check if serverAddress was provided as a flag
+	if *serverAddress == "" {
+		// If not, check if the ADDRESS environment variable is set
+		envAddress := os.Getenv("ADDRESS")
+		if envAddress != "" {
+			*serverAddress = envAddress
+		} else {
+			// If not, use the default value
+			*serverAddress = "localhost:8080"
+		}
 	}
 
 	// Check if serverAddress starts with http://

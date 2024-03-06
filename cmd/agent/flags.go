@@ -2,23 +2,38 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
 var (
-	ServerAddress  = flag.String("a", "http://localhost:8080", "HTTP server address")
-	ReportInterval = flag.Duration("r", 10*time.Second, "report interval")
-	PollInterval   = flag.Duration("p", 2*time.Second, "poll interval")
+	ServerAddress  = flag.String("address", "localhost:8080", "HTTP server network address")
+	ReportInterval = flag.Duration("report_interval", 10*time.Second, "Interval between fetching reportable metrics")
+	PollInterval   = flag.Duration("poll_interval", 2*time.Second, "Interval between polling metrics")
 )
 
 func parseFlags() {
-	// Parse the flags
-	err := flag.CommandLine.Parse(os.Args[1:])
-	if err != nil {
-		// If there was an error, print it and exit with a non-zero status code
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+	flag.Parse()
+
+	// Override the server address, report interval, and poll interval with environment variables if they are set
+	if address := os.Getenv("ADDRESS"); address != "" {
+		if !strings.HasPrefix(address, "http://") && !strings.HasPrefix(address, "https://") {
+			address = "http://" + address
+		}
+		*ServerAddress = address
+	}
+
+	if ri := os.Getenv("REPORT_INTERVAL"); ri != "" {
+		if riInt, err := strconv.Atoi(ri); err == nil {
+			*ReportInterval = time.Duration(riInt) * time.Second
+		}
+	}
+
+	if pi := os.Getenv("POLL_INTERVAL"); pi != "" {
+		if piInt, err := strconv.Atoi(pi); err == nil {
+			*PollInterval = time.Duration(piInt) * time.Second
+		}
 	}
 }

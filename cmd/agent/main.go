@@ -29,9 +29,6 @@ var (
 )
 
 func main() {
-	// Parse the flags
-	parseFlags()
-
 	// Open a file for logging
 	logFile, err := os.OpenFile("log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
@@ -42,6 +39,10 @@ func main() {
 
 	// Set the output destination of the standard logger
 	log.SetOutput(logFile)
+
+	// Parse the flags
+	parseFlags()
+
 	//Start the cicle of collecting and sending metrics
 	pollTicker := time.NewTicker(*PollInterval)
 	reportTicker := time.NewTicker(*ReportInterval)
