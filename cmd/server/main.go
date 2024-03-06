@@ -202,5 +202,6 @@ func main() {
 
 	mux.Get("/value/{metricType}/{metricName}", MetricValue(storage))
 
+	fmt.Printf("Starting server on %s\n", *serverAddress)
 	http.ListenAndServe(*serverAddress, mux)
 }
