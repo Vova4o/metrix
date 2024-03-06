@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -18,13 +17,6 @@ type HttpClient interface {
 	R() *resty.Request
 }
 
-// some constants to run the agent
-const (
-	serverURL      = "http://localhost:8080/update" // URL сервера
-	pollInterval   = 2 * time.Second                // Интервал между сбором метрик
-	reportInterval = 10 * time.Second               // Интервал между отправкой метрик
-)
-
 // Here we define two global variables to store the metrics we collect.
 // We use regular maps, cause they get filled one by one, not concurrently.
 var (
@@ -33,9 +25,11 @@ var (
 )
 
 func main() {
+	// Parse the flags
+	parseFlags()
 	//Start the cicle of collecting and sending metrics
-	pollTicker := time.NewTicker(pollInterval)
-	reportTicker := time.NewTicker(reportInterval)
+	pollTicker := time.NewTicker(*PollInterval)
+	reportTicker := time.NewTicker(*ReportInterval)
 
 	// Start the main loop
 	for {
@@ -136,10 +130,8 @@ func reportMetrics() {
 
 // sendMetric sends a metric to the server
 func sendMetric(client HttpClient, metricType, metricName string, metricValue float64) error {
-	if client == nil {
-		return errors.New("client is nil")
-	}
-	url := fmt.Sprintf("%s/%s/%s/%s", serverURL, metricType, metricName, strconv.FormatFloat(metricValue, 'f', -1, 64))
+	url := fmt.Sprintf("%s/update/%s/%s/%s", *ServerAddress, metricType, metricName, strconv.FormatFloat(metricValue, 'f', -1, 64))
+	// fmt.Println(url)
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "text/plain").
