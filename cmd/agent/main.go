@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"net/http"
 	"runtime"
-	"strconv"
 	"sync"
 	"time"
 
@@ -13,7 +12,7 @@ import (
 )
 
 // HttpClient is an interface for making HTTP requests
-type HttpClient interface {
+type RestClient interface {
 	R() *resty.Request
 }
 
@@ -40,7 +39,7 @@ func main() {
 			pollMetrics()
 			// When the reportTicker ticks, we send the metrics
 		case <-reportTicker.C:
-			reportMetrics()
+			reportMetrics(*ServerAddress)
 		}
 	}
 }
@@ -89,7 +88,7 @@ func pollMetrics() {
 }
 
 // reportMetrics sends the metrics to the server
-func reportMetrics() {
+func reportMetrics(baseURL string) {
 	client := resty.New()
 	errs := make(chan error)
 	var wg sync.WaitGroup
@@ -98,7 +97,7 @@ func reportMetrics() {
 		wg.Add(1)
 		go func(name string, value float64) {
 			defer wg.Done()
-			err := sendMetric(client, "gauge", name, value)
+			err := sendMetric(client, "gauge", name, value, baseURL)
 			if err != nil {
 				errs <- fmt.Errorf("error sending gauge metric %s: %v", name, err)
 			}
@@ -109,7 +108,7 @@ func reportMetrics() {
 		wg.Add(1)
 		go func(name string, value float64) {
 			defer wg.Done()
-			err := sendMetric(client, "counter", name, value)
+			err := sendMetric(client, "counter", name, value, baseURL)
 			if err != nil {
 				errs <- fmt.Errorf("error sending counter metric %s: %v", name, err)
 			}
@@ -128,14 +127,19 @@ func reportMetrics() {
 	}
 }
 
-// sendMetric sends a metric to the server
-func sendMetric(client HttpClient, metricType, metricName string, metricValue float64) error {
-	url := fmt.Sprintf("%s/update/%s/%s/%s", *ServerAddress, metricType, metricName, strconv.FormatFloat(metricValue, 'f', -1, 64))
-	// fmt.Println(url)
-
+func sendMetric(client RestClient, metricType, metricName string, metricValue float64, baseURL string) error {
+	// Use baseURL instead of the hard-coded "http://localhost:8080"
 	resp, err := client.R().
+		SetBody(map[string]interface{}{"value": metricValue}).
+		Post(fmt.Sprintf("%s/update/%s/%s/%.2f", baseURL, metricType, metricName, metricValue))
+
+	if err != nil {
+		return fmt.Errorf("failed to send %s metric %s: %v", metricType, metricName, err)
+	}
+
+	resp, err = client.R().
 		SetHeader("Content-Type", "text/plain").
-		Post(url)
+		Post(baseURL)
 
 	if err != nil {
 		return fmt.Errorf("failed to send %s metric %s: %v", metricType, metricName, err)

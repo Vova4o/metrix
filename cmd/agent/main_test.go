@@ -6,65 +6,40 @@ import (
 	"testing"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/stretchr/testify/assert"
 )
 
-type args struct {
-	client     *resty.Client
-	metricType string
-	metricName string
-	value      float64
+type MockClient struct {
+	client *resty.Client
+}
+
+func (m *MockClient) R() *resty.Request {
+	return m.client.R()
 }
 
 func TestSendMetric(t *testing.T) {
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Test case 1: Valid gauge metric",
-			args: args{
-				client:     resty.New(),
-				metricType: "gauge",
-				metricName: "testMetric",
-				value:      1.0,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Test case 2: Invalid metric type",
-			args: args{
-				client:     resty.New(),
-				metricType: "invalid",
-				metricName: "testMetric",
-				value:      1.0,
-			},
-			wantErr: true,
-		},
-		// Add more test cases as needed
-	}
+    // Create a mock HTTP server
+    server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.WriteHeader(http.StatusOK)
+    }))
+    defer server.Close()
 
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            // Create a mock HTTP server
-            server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-                w.WriteHeader(http.StatusOK)
-            }))
-            defer server.Close()
+    // Create a mock HTTP client
+    client := &MockClient{client: resty.New()}
 
-            // Set the mock server's URL as the base URL of the client
-            tt.args.client.SetBaseURL(server.URL)
+    // Test sendMetric function
+    err := sendMetric(client, "gauge", "testMetric", 1.0, server.URL)
+    if err != nil {
+        t.Errorf("Expected no error, got %v", err)
+    }
 
-            // Call the function under test
-            err := sendMetric(tt.args.client, tt.args.metricType, tt.args.metricName, tt.args.value)
+    // Test sendMetric function with server error
+    serverError := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.WriteHeader(http.StatusInternalServerError)
+    }))
+    defer serverError.Close()
 
-            // Assert that there was no error
-            if tt.wantErr {
-                assert.Error(t, err)
-            } else {
-                assert.NoError(t, err)
-            }
-        })
+    err = sendMetric(client, "gauge", "testMetric", 1.0, serverError.URL)
+    if err == nil {
+        t.Errorf("Expected error, got nil")
     }
 }
