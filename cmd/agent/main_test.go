@@ -41,5 +41,10 @@ func TestSendMetric(t *testing.T) {
     err = sendMetric(client, "gauge", "testMetric", 1.0, serverError.URL)
     if err == nil {
         t.Errorf("Expected error, got nil")
+    } else {
+        expectedErrorMessage := "server returned non-OK status for gauge metric testMetric: 500 Internal Server Error"
+        if err.Error() != expectedErrorMessage {
+            t.Errorf("Expected error message '%s', got '%s'", expectedErrorMessage, err.Error())
+        }
     }
 }

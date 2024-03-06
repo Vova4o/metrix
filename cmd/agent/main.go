@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -16,6 +19,8 @@ type RestClient interface {
 	R() *resty.Request
 }
 
+var baseURL string
+
 // Here we define two global variables to store the metrics we collect.
 // We use regular maps, cause they get filled one by one, not concurrently.
 var (
@@ -26,9 +31,21 @@ var (
 func main() {
 	// Parse the flags
 	parseFlags()
+
+	// Open a file for logging
+	logFile, err := os.OpenFile("log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Printf("Failed to open log file: %v\n", err)
+		return
+	}
+	defer logFile.Close()
+
+	// Set the output destination of the standard logger
+	log.SetOutput(logFile)
 	//Start the cicle of collecting and sending metrics
 	pollTicker := time.NewTicker(*PollInterval)
 	reportTicker := time.NewTicker(*ReportInterval)
+	baseURL = *ServerAddress
 
 	// Start the main loop
 	for {
@@ -39,7 +56,7 @@ func main() {
 			pollMetrics()
 			// When the reportTicker ticks, we send the metrics
 		case <-reportTicker.C:
-			reportMetrics(*ServerAddress)
+			reportMetrics(baseURL)
 		}
 	}
 }
@@ -99,6 +116,7 @@ func reportMetrics(baseURL string) {
 			defer wg.Done()
 			err := sendMetric(client, "gauge", name, value, baseURL)
 			if err != nil {
+				log.Printf("error sending gauge metric %s: %v", name, err)
 				errs <- fmt.Errorf("error sending gauge metric %s: %v", name, err)
 			}
 		}(metricName, metricValue)
@@ -110,6 +128,7 @@ func reportMetrics(baseURL string) {
 			defer wg.Done()
 			err := sendMetric(client, "counter", name, value, baseURL)
 			if err != nil {
+				log.Printf("error sending counter metric %s: %v", name, err)
 				errs <- fmt.Errorf("error sending counter metric %s: %v", name, err)
 			}
 		}(metricName, float64(metricValue))
@@ -123,29 +142,27 @@ func reportMetrics(baseURL string) {
 
 	// Print all errors
 	for err := range errs {
+		log.Println(err)
 		fmt.Println(err)
 	}
 }
 
 func sendMetric(client RestClient, metricType, metricName string, metricValue float64, baseURL string) error {
-	// Use baseURL instead of the hard-coded "http://localhost:8080"
+	if !strings.HasPrefix(baseURL, "http://") {
+		baseURL = "http://" + baseURL
+	}
+	// fmt.Println("Sending metric", metricType, metricName, metricValue, baseURL)
 	resp, err := client.R().
-		SetBody(map[string]interface{}{"value": metricValue}).
+		SetHeader("Content-Type", "text/plain").
 		Post(fmt.Sprintf("%s/update/%s/%s/%.2f", baseURL, metricType, metricName, metricValue))
 
 	if err != nil {
-		return fmt.Errorf("failed to send %s metric %s: %v", metricType, metricName, err)
-	}
-
-	resp, err = client.R().
-		SetHeader("Content-Type", "text/plain").
-		Post(baseURL)
-
-	if err != nil {
+		log.Printf("failed to send %s metric %s: %v", metricType, metricName, err)
 		return fmt.Errorf("failed to send %s metric %s: %v", metricType, metricName, err)
 	}
 
 	if resp.StatusCode() != http.StatusOK {
+		log.Printf("server returned non-OK status for %s metric %s: %v", metricType, metricName, resp.Status())
 		return fmt.Errorf("server returned non-OK status for %s metric %s: %v", metricType, metricName, resp.Status())
 	}
 

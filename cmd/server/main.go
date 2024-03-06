@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"sync"
 
@@ -32,9 +34,9 @@ type StorageInterface interface {
 	//GetGauge returns the value of a gauge
 	GetGauge(key string) (float64, bool)
 	//SetCounter sets the value of a counter
-	SetCounter(key string, value int64)
+	SetCounter(key string, value float64)
 	//GetCounter returns the value of a counter
-	GetCounter(key string) (int64, bool)
+	GetCounter(key string) (float64, bool)
 	//Delete removes a metric from the storage
 	Delete(key string)
 }
@@ -54,18 +56,15 @@ func (m *MemStorage) GetGauge(key string) (float64, bool) {
 }
 
 // SetCounter sets the value of a counter
-func (m *MemStorage) SetCounter(key string, value int64) {
-	actual, loaded := m.counterMetrics.LoadOrStore(key, value)
-	if loaded {
-		m.counterMetrics.Store(key, actual.(int64)+value)
-	}
+func (m *MemStorage) SetCounter(key string, value float64) {
+	m.counterMetrics.Store(key, value)
 }
 
 // GetCounter returns the value of a counter
-func (m *MemStorage) GetCounter(key string) (int64, bool) {
+func (m *MemStorage) GetCounter(key string) (float64, bool) {
 	value, exists := m.counterMetrics.Load(key)
 	if exists {
-		return value.(int64), exists
+		return value.(float64), exists
 	}
 	return 0, exists
 }
@@ -86,20 +85,22 @@ func handleUpdate(storage *MemStorage) http.HandlerFunc {
 		case "gauge":
 			value, err := strconv.ParseFloat(metricValue, 64)
 			if err != nil {
+				log.Printf("Invalid metric value gauge: %s", metricValue)
 				http.Error(w, "Invalid metric value", http.StatusBadRequest)
 				return
 			}
 			storage.SetGauge(metricName, value)
 		case "counter":
-			value, err := strconv.ParseInt(metricValue, 10, 64)
+			value, err := strconv.ParseFloat(metricValue, 64)
 			if err != nil {
+				log.Printf("Invalid metric value counter: %s", metricValue)
 				http.Error(w, "Invalid metric value", http.StatusBadRequest)
 				return
 			}
 			storage.SetCounter(metricName, value)
 		default:
+			log.Printf("Invalid metric type: %s", metricType)
 			http.Error(w, "Invalid metric type", http.StatusBadRequest)
-			return
 		}
 
 		w.WriteHeader(http.StatusOK)
@@ -116,9 +117,9 @@ func ShowMetrics(storage *MemStorage) http.HandlerFunc {
 		})
 
 		// Get all the counter metrics
-		counterMetrics := map[string]int64{}
+		counterMetrics := map[string]float64{}
 		storage.counterMetrics.Range(func(key, value interface{}) bool {
-			counterMetrics[key.(string)] = value.(int64)
+			counterMetrics[key.(string)] = value.(float64)
 			return true
 		})
 
@@ -134,7 +135,7 @@ func ShowMetrics(storage *MemStorage) http.HandlerFunc {
 		fmt.Fprint(w, "</ul>")
 		fmt.Fprint(w, "<h1>Counter Metrics</h1><ul>")
 		for key, value := range counterMetrics {
-			fmt.Fprintf(w, "<li>%s: %d</li>", key, value)
+			fmt.Fprintf(w, "<li>%s: %d</li>", key, int(value))
 		}
 		fmt.Fprint(w, "</ul></body></html>")
 	}
@@ -165,8 +166,9 @@ func MetricValue(storage *MemStorage) http.HandlerFunc {
 			}
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusOK)
-			fmt.Fprintf(w, "%d", value)
+			fmt.Fprintf(w, "%d", int(value))
 		default:
+			log.Printf("Invalid metric type: %s", metricType)
 			http.Error(w, "Invalid metric type", http.StatusBadRequest)
 		}
 	}
@@ -174,6 +176,14 @@ func MetricValue(storage *MemStorage) http.HandlerFunc {
 
 func main() {
 	parseFlags()
+
+	logFile, err := os.OpenFile("log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("Failed to open log file: %v", err)
+	}
+	defer logFile.Close()
+
+	log.SetOutput(logFile)
 
 	mux := chi.NewRouter()
 
