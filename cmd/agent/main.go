@@ -128,22 +128,26 @@ func reportMetrics(baseURL string) {
 }
 
 func sendMetric(client RestClient, metricType, metricName string, metricValue float64, baseURL string) error {
-    // Use baseURL instead of the hard-coded "http://localhost:8080"
-    _, err := client.R().
-        SetBody(map[string]interface{}{"value": metricValue}).
-        Post(fmt.Sprintf("%s/update/%s/%s/%.2f", baseURL, metricType, metricName, metricValue))
+	// Use baseURL instead of the hard-coded "http://localhost:8080"
+	resp, err := client.R().
+		SetBody(map[string]interface{}{"value": metricValue}).
+		Post(fmt.Sprintf("%s/update/%s/%s/%.2f", baseURL, metricType, metricName, metricValue))
 
-    if err != nil {
-        return fmt.Errorf("failed to send %s metric %s: %v", metricType, metricName, err)
-    }
+	if err != nil {
+		return fmt.Errorf("failed to send %s metric %s: %v", metricType, metricName, err)
+	}
 
-    _, err = client.R().
-        SetHeader("Content-Type", "text/plain").
-        Post(baseURL)
+	resp, err = client.R().
+		SetHeader("Content-Type", "text/plain").
+		Post(baseURL)
 
-    if err != nil {
-        return fmt.Errorf("failed to send %s metric %s: %v", metricType, metricName, err)
-    }
+	if err != nil {
+		return fmt.Errorf("failed to send %s metric %s: %v", metricType, metricName, err)
+	}
 
-    return nil
+	if resp.StatusCode() != http.StatusOK {
+		return fmt.Errorf("server returned non-OK status for %s metric %s: %v", metricType, metricName, resp.Status())
+	}
+
+	return nil
 }

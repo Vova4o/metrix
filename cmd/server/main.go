@@ -127,9 +127,10 @@ func ShowMetrics(storage *MemStorage) http.HandlerFunc {
 		fmt.Fprint(w, "<html><body>")
 		fmt.Fprint(w, "<h1>Gauge Metrics</h1><ul>")
 		for key, value := range gaugeMetrics {
-			fmt.Fprintf(w, "<li>%s: %f</li>", key, value)
+			// Format the float with no trailing zeros
+			formattedValue := strconv.FormatFloat(value, 'g', -1, 64)
+			fmt.Fprintf(w, "<li>%s: %s</li>", key, formattedValue)
 		}
-		fmt.Fprint(w, "</ul><h1>Counter Metrics</h1><ul>")
 		for key, value := range counterMetrics {
 			fmt.Fprintf(w, "<li>%s: %d</li>", key, value)
 		}
@@ -151,7 +152,9 @@ func MetricValue(storage *MemStorage) http.HandlerFunc {
 			}
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusOK)
-			fmt.Fprintf(w, "%f", value)
+			// Format the float with no trailing zeros
+			formattedValue := strconv.FormatFloat(value, 'f', -1, 64)
+			fmt.Fprint(w, formattedValue)
 		case "counter":
 			value, exists := storage.GetCounter(metricName)
 			if !exists {
