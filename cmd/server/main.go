@@ -43,7 +43,7 @@ type StorageInterface interface {
 
 // SetGauge sets the value of a gauge
 func (m *MemStorage) SetGauge(key string, value float64) {
-	m.gaugeMetrics.Store(key, value)
+    m.gaugeMetrics.Store(key, value)
 }
 
 // GetGauge returns the value of a gauge
@@ -55,9 +55,13 @@ func (m *MemStorage) GetGauge(key string) (float64, bool) {
 	return 0, exists
 }
 
-// SetCounter sets the value of a counter
+// SetCounter increments the value of a counter
 func (m *MemStorage) SetCounter(key string, value float64) {
-	m.counterMetrics.Store(key, value)
+    actual, loaded := m.counterMetrics.LoadOrStore(key, value)
+    if loaded {
+        newValue := actual.(float64) + value
+        m.counterMetrics.Store(key, newValue)
+    }
 }
 
 // GetCounter returns the value of a counter
