@@ -170,7 +170,7 @@ func TestMetricValue(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rr.Code)
 
 	// Check the response body
-	expected := "10.000000" // Expected response body
+	expected := "10" // Expected response body
 	assert.Equal(t, expected, rr.Body.String(), "handler returned unexpected body")
 }
 

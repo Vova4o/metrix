@@ -131,6 +131,8 @@ func ShowMetrics(storage *MemStorage) http.HandlerFunc {
 			formattedValue := strconv.FormatFloat(value, 'g', -1, 64)
 			fmt.Fprintf(w, "<li>%s: %s</li>", key, formattedValue)
 		}
+		fmt.Fprint(w, "</ul>")
+		fmt.Fprint(w, "<h1>Counter Metrics</h1><ul>")
 		for key, value := range counterMetrics {
 			fmt.Fprintf(w, "<li>%s: %d</li>", key, value)
 		}
