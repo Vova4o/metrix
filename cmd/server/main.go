@@ -43,7 +43,7 @@ type StorageInterface interface {
 
 // SetGauge sets the value of a gauge
 func (m *MemStorage) SetGauge(key string, value float64) {
-    m.gaugeMetrics.Store(key, value)
+	m.gaugeMetrics.Store(key, value)
 }
 
 // GetGauge returns the value of a gauge
@@ -57,11 +57,11 @@ func (m *MemStorage) GetGauge(key string) (float64, bool) {
 
 // SetCounter increments the value of a counter
 func (m *MemStorage) SetCounter(key string, value float64) {
-    actual, loaded := m.counterMetrics.LoadOrStore(key, value)
-    if loaded {
-        newValue := actual.(float64) + value
-        m.counterMetrics.Store(key, newValue)
-    }
+	actual, loaded := m.counterMetrics.LoadOrStore(key, value)
+	if loaded {
+		newValue := actual.(float64) + value
+		m.counterMetrics.Store(key, newValue)
+	}
 }
 
 // GetCounter returns the value of a counter
@@ -79,50 +79,64 @@ func (m *MemStorage) Delete(key string) {
 	m.counterMetrics.Delete(key)
 }
 
+// handleUpdate is an HTTP handler that updates a metric
 func handleUpdate(storage *MemStorage) http.HandlerFunc {
+	// Return the actual handler function
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Get the metric type, name and value from the URL parameters
 		metricType := chi.URLParam(r, "metricType")
 		metricName := chi.URLParam(r, "metricName")
 		metricValue := chi.URLParam(r, "metricValue")
 
+		// Check if the metric type is valid
 		switch metricType {
 		case "gauge":
+			// Parse the metric value as a float
 			value, err := strconv.ParseFloat(metricValue, 64)
 			if err != nil {
 				log.Printf("Invalid metric value gauge: %s", metricValue)
 				http.Error(w, "Invalid metric value", http.StatusBadRequest)
 				return
 			}
+			// store the value in the storage
 			storage.SetGauge(metricName, value)
 		case "counter":
+			// Parse the metric value as a float
 			value, err := strconv.ParseFloat(metricValue, 64)
 			if err != nil {
 				log.Printf("Invalid metric value counter: %s", metricValue)
 				http.Error(w, "Invalid metric value", http.StatusBadRequest)
 				return
 			}
+			// store the value in the storage
 			storage.SetCounter(metricName, value)
 		default:
 			log.Printf("Invalid metric type: %s", metricType)
 			http.Error(w, "Invalid metric type", http.StatusBadRequest)
 		}
-
+		// Set the status code to 200 OK
 		w.WriteHeader(http.StatusOK)
 	}
 }
 
+// ShowMetrics is an HTTP handler that shows all the metrics
 func ShowMetrics(storage *MemStorage) http.HandlerFunc {
+	// Return the actual handler function
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Get all the gauge metrics
 		gaugeMetrics := map[string]float64{}
+		// Range over all the gauge metrics and add them to the map
 		storage.gaugeMetrics.Range(func(key, value interface{}) bool {
+			// Add the metric to the map
 			gaugeMetrics[key.(string)] = value.(float64)
 			return true
 		})
 
 		// Get all the counter metrics
 		counterMetrics := map[string]float64{}
+		// Range over all the counter metrics and add them to the map
 		storage.counterMetrics.Range(func(key, value interface{}) bool {
+			// Add the metric to the map
 			counterMetrics[key.(string)] = value.(float64)
 			return true
 		})
@@ -145,13 +159,18 @@ func ShowMetrics(storage *MemStorage) http.HandlerFunc {
 	}
 }
 
+// MetricValue is an HTTP handler that returns the value of a metric
 func MetricValue(storage *MemStorage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Get the metric type and name from the URL parameters
 		metricType := chi.URLParam(r, "metricType")
 		metricName := chi.URLParam(r, "metricName")
 
+		// Check if the metric type is valid
 		switch metricType {
+		// If the metric type is gauge
 		case "gauge":
+			// if value exists, set it to the value of the metric
 			value, exists := storage.GetGauge(metricName)
 			if !exists {
 				http.Error(w, "Metric not found", http.StatusNotFound)
@@ -162,7 +181,9 @@ func MetricValue(storage *MemStorage) http.HandlerFunc {
 			// Format the float with no trailing zeros
 			formattedValue := strconv.FormatFloat(value, 'f', -1, 64)
 			fmt.Fprint(w, formattedValue)
+			// If the metric type is counter
 		case "counter":
+			// if value exists, set it to the value of the metric
 			value, exists := storage.GetCounter(metricName)
 			if !exists {
 				http.Error(w, "Metric not found", http.StatusNotFound)
@@ -179,8 +200,10 @@ func MetricValue(storage *MemStorage) http.HandlerFunc {
 }
 
 func main() {
+	// Parse the flags
 	parseFlags()
 
+	// Creating logger, at some point i was done looking for mistakes manualy
 	logFile, err := os.OpenFile("log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("Failed to open log file: %v", err)
@@ -189,13 +212,15 @@ func main() {
 
 	log.SetOutput(logFile)
 
+	// Create a new router
 	mux := chi.NewRouter()
 
+	// Create a new storage
 	storage := &MemStorage{
 		gaugeMetrics:   sync.Map{},
 		counterMetrics: sync.Map{},
 	}
-
+	// Add the handlers to the router
 	mux.Post("/update/{metricType}/{metricName}/{metricValue}", handleUpdate(storage))
 
 	mux.Get("/", ShowMetrics(storage))
@@ -203,5 +228,6 @@ func main() {
 	mux.Get("/value/{metricType}/{metricName}", MetricValue(storage))
 
 	fmt.Printf("Starting server on %s\n", *serverAddress)
+	// Start the server
 	http.ListenAndServe(*serverAddress, mux)
 }

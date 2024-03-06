@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// parseFlags parses the flags and sets the serverAddress variable
 var serverAddress = flag.String("a", "", "HTTP server address")
 
 func parseFlags() {
@@ -16,6 +17,7 @@ func parseFlags() {
 	if *serverAddress == "" {
 		// If not, check if the ADDRESS environment variable is set
 		envAddress := os.Getenv("ADDRESS")
+        // If it is, use the value from the environment variable
 		if envAddress != "" {
 			*serverAddress = envAddress
 		} else {
