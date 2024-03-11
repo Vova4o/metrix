@@ -25,3 +25,4 @@ vendor/
 .vscode
 cmd/agent/log.txt
 cmd/server/log.txt
+log.txt

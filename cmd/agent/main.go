@@ -44,8 +44,8 @@ func main() {
 	parseFlags()
 
 	//Start the cicle of collecting and sending metrics
-	pollTicker := time.NewTicker(*PollInterval)
-	reportTicker := time.NewTicker(*ReportInterval)
+	pollTicker := time.NewTicker(time.Duration(*PollInterval) * time.Second)
+	reportTicker := time.NewTicker(time.Duration(*ReportInterval) * time.Second)
 	baseURL = *ServerAddress
 
 	// Start the main loop
