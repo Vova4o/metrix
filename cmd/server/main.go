@@ -201,7 +201,7 @@ func MetricValue(storage *MemStorage) http.HandlerFunc {
 
 func main() {
 	// Parse the flags
-	ServerAddress := parseFlags()
+	parseFlags()
 
 	// Creating logger, at some point i was done looking for mistakes manualy
 	logFile, err := os.OpenFile("log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
@@ -227,7 +227,7 @@ func main() {
 
 	mux.Get("/value/{metricType}/{metricName}", MetricValue(storage))
 
-	fmt.Printf("Starting server on %s\n", ServerAddress)
+	fmt.Printf("Starting server on %s\n", *ServerAddress)
 	// Start the server
-	http.ListenAndServe(ServerAddress, mux)
+	http.ListenAndServe(*ServerAddress, mux)
 }
