@@ -5,14 +5,13 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // Variables to store the command-line flags
 var (
 	ServerAddress  = flag.String("a", "localhost:8080", "HTTP server network address")
-	ReportInterval = flag.Duration("r", 10*time.Second, "Interval between fetching reportable metrics")
-	PollInterval   = flag.Duration("p", 2*time.Second, "Interval between polling metrics")
+	ReportInterval = flag.Int("r", 10, "Interval between fetching reportable metrics in seconds")
+	PollInterval   = flag.Int("p", 2, "Interval between polling metrics in seconds")
 )
 
 func parseFlags() {
@@ -30,14 +29,14 @@ func parseFlags() {
 	// If the REPORT_INTERVAL environment variable is set, override the default value
 	if ri := os.Getenv("REPORT_INTERVAL"); ri != "" {
 		if riInt, err := strconv.Atoi(ri); err == nil {
-			*ReportInterval = time.Duration(riInt) * time.Second
+			*ReportInterval = riInt
 		}
 	}
 
 	// If the POLL_INTERVAL environment variable is set, override the default value
 	if pi := os.Getenv("POLL_INTERVAL"); pi != "" {
 		if piInt, err := strconv.Atoi(pi); err == nil {
-			*PollInterval = time.Duration(piInt) * time.Second
+			*PollInterval = piInt
 		}
 	}
 }
