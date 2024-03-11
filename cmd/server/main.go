@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,9 +10,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 )
-
-// parseFlags parses the flags and sets the serverAddress variable
-var ServerAddress = flag.String("a", "", "HTTP server address")
 
 // MemStorage is a simple in-memory storage for metrics
 // It uses two sync.Map to store gauge and counter metrics
@@ -205,7 +201,7 @@ func MetricValue(storage *MemStorage) http.HandlerFunc {
 
 func main() {
 	// Parse the flags
-	parseFlags()
+	ServerAddress := parseFlags()
 
 	// Creating logger, at some point i was done looking for mistakes manualy
 	logFile, err := os.OpenFile("log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
@@ -231,7 +227,7 @@ func main() {
 
 	mux.Get("/value/{metricType}/{metricName}", MetricValue(storage))
 
-	fmt.Printf("Starting server on %s\n", *ServerAddress)
+	fmt.Printf("Starting server on %s\n", ServerAddress)
 	// Start the server
-	http.ListenAndServe(*ServerAddress, mux)
+	http.ListenAndServe(ServerAddress, mux)
 }

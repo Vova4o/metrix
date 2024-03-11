@@ -175,33 +175,33 @@ func TestMetricValue(t *testing.T) {
 }
 
 func TestMetricValue_notFound(t *testing.T) {
-    // define an empty storage
-    storage := &MemStorage{
-        gaugeMetrics:   sync.Map{},
-        counterMetrics: sync.Map{},
-    }
+	// define an empty storage
+	storage := &MemStorage{
+		gaugeMetrics:   sync.Map{},
+		counterMetrics: sync.Map{},
+	}
 
-    // Create a request to pass to our handler
-    handler := MetricValue(storage)
+	// Create a request to pass to our handler
+	handler := MetricValue(storage)
 
-    // Create a new HTTP request
-    req, err := http.NewRequest("GET", "", nil)
-    // Check if there was an error creating the request
-    assert.NoError(t, err)
+	// Create a new HTTP request
+	req, err := http.NewRequest("GET", "", nil)
+	// Check if there was an error creating the request
+	assert.NoError(t, err)
 
-    // Create a router context with the URL parameters
-    rctx := chi.NewRouteContext()
-    // Add the URL parameters
-    rctx.URLParams.Add("metricType", "gauge")
-    rctx.URLParams.Add("metricName", "test")
-    // Add the router context to the request
-    req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+	// Create a router context with the URL parameters
+	rctx := chi.NewRouteContext()
+	// Add the URL parameters
+	rctx.URLParams.Add("metricType", "gauge")
+	rctx.URLParams.Add("metricName", "test")
+	// Add the router context to the request
+	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-    // Create a ResponseRecorder to record the response
-    rr := httptest.NewRecorder()
-    // Call ServeHTTP method directly and pass in our Request and ResponseRecorder
-    handler.ServeHTTP(rr, req)
+	// Create a ResponseRecorder to record the response
+	rr := httptest.NewRecorder()
+	// Call ServeHTTP method directly and pass in our Request and ResponseRecorder
+	handler.ServeHTTP(rr, req)
 
-    // Check the status code
-    assert.Equal(t, http.StatusNotFound, rr.Code)
+	// Check the status code
+	assert.Equal(t, http.StatusNotFound, rr.Code)
 }
