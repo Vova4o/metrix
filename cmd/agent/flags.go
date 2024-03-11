@@ -10,9 +10,9 @@ import (
 
 // Variables to store the command-line flags
 var (
-	ServerAddress  = flag.String("address", "localhost:8080", "HTTP server network address")
-	ReportInterval = flag.Duration("report_interval", 10*time.Second, "Interval between fetching reportable metrics")
-	PollInterval   = flag.Duration("poll_interval", 2*time.Second, "Interval between polling metrics")
+	ServerAddress  = flag.String("a", "localhost:8080", "HTTP server network address")
+	ReportInterval = flag.Duration("r", 10*time.Second, "Interval between fetching reportable metrics")
+	PollInterval   = flag.Duration("p", 2*time.Second, "Interval between polling metrics")
 )
 
 func parseFlags() {
