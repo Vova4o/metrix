@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,6 +11,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 )
+
+// parseFlags parses the flags and sets the serverAddress variable
+var ServerAddress = flag.String("a", "", "HTTP server address")
 
 // MemStorage is a simple in-memory storage for metrics
 // It uses two sync.Map to store gauge and counter metrics
@@ -227,7 +231,7 @@ func main() {
 
 	mux.Get("/value/{metricType}/{metricName}", MetricValue(storage))
 
-	fmt.Printf("Starting server on %s\n", *serverAddress)
+	fmt.Printf("Starting server on %s\n", *ServerAddress)
 	// Start the server
-	http.ListenAndServe(*serverAddress, mux)
+	http.ListenAndServe(*ServerAddress, mux)
 }
