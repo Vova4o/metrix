@@ -7,6 +7,8 @@ import (
 	"Vova4o/metrix/internal/logger"
 	"log"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -19,6 +21,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to open log file: %v", err)
 	}
+	if err == nil {
+		logrus.SetOutput(LogfileAgent)
+	} else {
+		logrus.Info("Failed to open log file, using default stderr output.")
+	}
 
 	defer LogfileAgent.Close()
 
@@ -30,7 +37,6 @@ func main() {
 	reportTicker := time.NewTicker(time.Duration(*clientflag.ReportInterval) * time.Second)
 	baseURL := *clientflag.ServerAddress
 
-	
 	// Start the main loop
 	for {
 		// Wait for the next tick
