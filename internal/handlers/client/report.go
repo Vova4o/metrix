@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/sirupsen/logrus"
 )
 
 // HttpClient is an interface for making HTTP requests
@@ -22,12 +23,18 @@ func ReportMetrics(baseURL string) {
 
 	// Add a middleware logger
 	client.OnBeforeRequest(func(client *resty.Client, request *resty.Request) error {
-		log.Printf("Sending request to URL: %s\n", request.URL)
+		logrus.WithFields(logrus.Fields{
+			"url": request.URL,
+		}).Info("Sending request")
+
 		return nil
 	})
 
 	client.OnAfterResponse(func(client *resty.Client, response *resty.Response) error {
-		log.Printf("Received response with status code: %d\n", response.StatusCode())
+		logrus.WithFields(logrus.Fields{
+			"status": response.StatusCode(),
+		}).Info("Received response")
+
 		return nil
 	})
 
