@@ -1,4 +1,4 @@
-package main
+package serverflag
 
 import (
 	"flag"
@@ -9,7 +9,7 @@ import (
 // parseFlags parses the flags and sets the serverAddress variable
 var ServerAddress = flag.String("a", "localhost:8080", "HTTP server address")
 
-func parseFlags() {
+func ParseFlags() {
 	flag.Parse()
 
 	// Check if ServerAddress starts with http://

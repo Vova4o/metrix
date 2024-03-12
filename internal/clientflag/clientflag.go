@@ -1,4 +1,4 @@
-package main
+package clientflag
 
 import (
 	"flag"
@@ -14,7 +14,7 @@ var (
 	PollInterval   = flag.Int("p", 2, "Interval between polling metrics in seconds")
 )
 
-func parseFlags() {
+func ParseFlags() {
 	// Parse the command-line flags
 	flag.Parse()
 

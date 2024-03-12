@@ -26,3 +26,8 @@ vendor/
 cmd/agent/log.txt
 cmd/server/log.txt
 log.txt
+internal/logger/test.log
+cmd/agent/agentlog.txt
+cmd/server/serverlog.txt
+agentlog.txt
+serverlog.txt
