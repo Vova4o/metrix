@@ -33,23 +33,16 @@ func ReportMetrics(baseURL string) {
 	client.OnAfterResponse(func(client *resty.Client, response *resty.Response) error {
 		logrus.WithFields(logrus.Fields{
 			"status": response.StatusCode(),
+			"body":   response.String(),
 		}).Info("Received response")
 
 		return nil
 	})
 
-	// Use the client to send a request
-	resp, err := client.R().Get("http://example.com")
-	if err != nil {
-		log.Fatalf("Failed to send request: %v", err)
-	}
-
-	log.Printf("Response: %s", resp)
-
 	errs := make(chan error)
 	var wg sync.WaitGroup
 
-	for metricName, metricValue := range config.CounterMetrics {
+	for metricName, metricValue := range config.GaugeMetrics {
 		wg.Add(1)
 		go func(name string, value float64) {
 			defer wg.Done()
@@ -63,14 +56,14 @@ func ReportMetrics(baseURL string) {
 
 	for metricName, metricValue := range config.CounterMetrics {
 		wg.Add(1)
-		go func(name string, value float64) {
+		go func(name string, value int64) {
 			defer wg.Done()
-			err := SendMetric(client, "counter", name, value, baseURL)
+			err := SendMetric(client, "counter", name, float64(value), baseURL)
 			if err != nil {
 				log.Printf("error sending counter metric %s: %v", name, err)
 				errs <- fmt.Errorf("error sending counter metric %s: %v", name, err)
 			}
-		}(metricName, float64(metricValue))
+		}(metricName, metricValue)
 	}
 
 	// Close the errs channel after all goroutines have finished

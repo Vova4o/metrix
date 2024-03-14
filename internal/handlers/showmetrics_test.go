@@ -16,7 +16,7 @@ func TestShowMetricsHandler(t *testing.T) {
 		GaugeMetrics:   sync.Map{},
 		CounterMetrics: sync.Map{},
 	}
-	storage.SetGauge("gaugeTest", 10.0)
+	storage.SetGauge("gaugeTest", 10.0000)
 	storage.SetCounter("counterTest", 20)
 
 	// Create a request to pass to our handler
@@ -35,6 +35,6 @@ func TestShowMetricsHandler(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rr.Code, "handler returned wrong status code")
 
 	// Check the response body
-	expected := "<html><body><h1>Gauge Metrics</h1><ul><li>gaugeTest: 10</li></ul><h1>Counter Metrics</h1><ul><li>counterTest: 20</li></ul></body></html>" // Expected response body
+	expected := "<html><body><h1>Gauge Metrics</h1><ul><li>gaugeTest: 10.0000</li></ul><h1>Counter Metrics</h1><ul><li>counterTest: 20</li></ul></body></html>" // Expected response body
 	assert.Equal(t, expected, rr.Body.String(), "handler returned unexpected body")
 }
