@@ -14,7 +14,7 @@ import (
 	"Vova4o/metrix/internal/storage"
 )
 
-func NewServer() {
+func NewServer() error {
 
 	// Create a new router
 	mux := chi.NewRouter()
@@ -38,6 +38,5 @@ func NewServer() {
 
 	fmt.Printf("Starting server on %s\n", allflags.GetServerAddress())
 	// Start the server
-	http.ListenAndServe(allflags.GetServerAddress(), mux)
-
+	return http.ListenAndServe(allflags.GetServerAddress(), mux)	
 }

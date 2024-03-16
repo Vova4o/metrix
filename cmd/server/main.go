@@ -19,5 +19,8 @@ func main() {
 
 	log.SetOutput(config.LogfileServer)
 
-	app.NewServer()
+	err = app.NewServer()
+	if err != nil {
+		log.Fatalf("Failed to start the server: %v", err)
+	}
 }
