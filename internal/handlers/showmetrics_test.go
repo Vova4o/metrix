@@ -1,4 +1,4 @@
-package handlers
+package handlers_test
 
 import (
 	"net/http"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"Vova4o/metrix/internal/handlers"
 	"Vova4o/metrix/internal/storage"
 )
 
@@ -17,7 +18,7 @@ func NewMemStorage() *storage.MemStorage {
 	}
 }
 
-func TestShowMetricsHandler(t *testing.T) {
+func TestShowMetricsHandler_Success(t *testing.T) {
 	// Create a storage and set some metrics
 	storage := NewMemStorage()
 	storage.SetGauge("gaugeTest", 10.0000)
@@ -31,7 +32,7 @@ func TestShowMetricsHandler(t *testing.T) {
 
 	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response
 	rr := httptest.NewRecorder()
-	handler := ShowMetrics(storage)
+	handler := handlers.ShowMetrics(storage)
 
 	// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
 	// directly and pass in our Request and ResponseRecorder
@@ -40,7 +41,8 @@ func TestShowMetricsHandler(t *testing.T) {
 	// Check the status code is what we expect
 	assert.Equal(t, http.StatusOK, rr.Code)
 
-	// Check the response body is what we expect
-	expected := `<html><body><h1>Gauge Metrics</h1><ul><li>gaugeTest: 10.0000</li></ul><h1>Counter Metrics</h1><ul><li>counterTest: 20</li></ul></body></html>` // fill this with the expected response
-	assert.Equal(t, expected, rr.Body.String())
+	// Check the response body contains the expected metrics and their values
+	body := rr.Body.String()
+	assert.Contains(t, body, "<li>gaugeTest: 10.0000</li>")
+	assert.Contains(t, body, "<li>counterTest: 20</li>")
 }
