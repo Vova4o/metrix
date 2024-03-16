@@ -1,8 +1,9 @@
 package clientmetrics
 
 import (
-	"Vova4o/metrix/internal/config"
 	"testing"
+
+	"Vova4o/metrix/internal/config"
 )
 
 func TestPollMetrics(t *testing.T) {

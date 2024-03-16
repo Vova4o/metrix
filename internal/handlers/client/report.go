@@ -1,7 +1,6 @@
 package clientmetrics
 
 import (
-	"Vova4o/metrix/internal/config"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,6 +9,8 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
+
+	"Vova4o/metrix/internal/config"
 )
 
 // HttpClient is an interface for making HTTP requests

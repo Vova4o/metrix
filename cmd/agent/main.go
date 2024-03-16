@@ -1,14 +1,15 @@
 package main
 
 import (
-	"Vova4o/metrix/internal/clientflag"
-	"Vova4o/metrix/internal/config"
-	clientmetrics "Vova4o/metrix/internal/handlers/client"
-	"Vova4o/metrix/internal/logger"
 	"log"
 	"time"
 
 	"github.com/sirupsen/logrus"
+
+	"Vova4o/metrix/internal/clientflag"
+	"Vova4o/metrix/internal/config"
+	clientmetrics "Vova4o/metrix/internal/handlers/client"
+	"Vova4o/metrix/internal/logger"
 )
 
 func main() {

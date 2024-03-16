@@ -1,9 +1,10 @@
 package clientmetrics
 
 import (
-	"Vova4o/metrix/internal/config"
 	"math/rand"
 	"runtime"
+
+	"Vova4o/metrix/internal/config"
 )
 
 // pollMetrics collects the metrics

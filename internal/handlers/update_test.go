@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"Vova4o/metrix/internal/storage"
 	"context"
 	"net/http"
 	"net/http/httptest"
@@ -10,6 +9,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
+
+	"Vova4o/metrix/internal/storage"
 )
 
 func Test_handleUpdate(t *testing.T) {

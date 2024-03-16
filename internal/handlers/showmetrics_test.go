@@ -1,13 +1,14 @@
 package handlers
 
 import (
-	"Vova4o/metrix/internal/storage"
 	"net/http"
 	"net/http/httptest"
 	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"Vova4o/metrix/internal/storage"
 )
 
 func TestShowMetricsHandler(t *testing.T) {

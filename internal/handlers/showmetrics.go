@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"Vova4o/metrix/internal/storage"
 	"fmt"
 	"net/http"
 	"sync"
+
+	"Vova4o/metrix/internal/storage"
 )
 
 // ShowMetrics is an HTTP handler that shows all the metrics

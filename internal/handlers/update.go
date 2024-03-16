@@ -1,12 +1,13 @@
 package handlers
 
 import (
-	"Vova4o/metrix/internal/storage"
 	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+
+	"Vova4o/metrix/internal/storage"
 )
 
 // handleUpdate is an HTTP handler that updates a metric

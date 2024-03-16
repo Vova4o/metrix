@@ -1,11 +1,6 @@
 package main
 
 import (
-	"Vova4o/metrix/internal/config"
-	serverflag "Vova4o/metrix/internal/flag"
-	"Vova4o/metrix/internal/handlers"
-	"Vova4o/metrix/internal/logger"
-	"Vova4o/metrix/internal/storage"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,6 +8,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+
+	"Vova4o/metrix/internal/config"
+	serverflag "Vova4o/metrix/internal/flag"
+	"Vova4o/metrix/internal/handlers"
+	"Vova4o/metrix/internal/logger"
+	"Vova4o/metrix/internal/storage"
 )
 
 func main() {
