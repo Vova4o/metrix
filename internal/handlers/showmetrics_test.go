@@ -10,9 +10,16 @@ import (
 	"Vova4o/metrix/internal/storage"
 )
 
+func NewMemStorage() *storage.MemStorage {
+	return &storage.MemStorage{
+		GaugeMetrics:   make(map[string]float64),
+		CounterMetrics: make(map[string]float64),
+	}
+}
+
 func TestShowMetricsHandler(t *testing.T) {
 	// Create a storage and set some metrics
-	storage := &storage.MemStorage{}
+	storage := NewMemStorage()
 	storage.SetGauge("gaugeTest", 10.0000)
 	storage.SetCounter("counterTest", 20)
 
@@ -34,6 +41,6 @@ func TestShowMetricsHandler(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rr.Code)
 
 	// Check the response body is what we expect
-	expected := `...` // fill this with the expected response
+	expected := `<html><body><h1>Gauge Metrics</h1><ul><li>gaugeTest: 10.0000</li></ul><h1>Counter Metrics</h1><ul><li>counterTest: 20</li></ul></body></html>` // fill this with the expected response
 	assert.Equal(t, expected, rr.Body.String())
 }
