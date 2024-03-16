@@ -21,15 +21,15 @@ type StorageInterface interface {
 }
 
 func (ms *MemStorage) GetAllGauges() map[string]float64 {
-    ms.mu.Lock()
-    defer ms.mu.Unlock()
-    return ms.GaugeMetrics
+	ms.mu.Lock()
+	defer ms.mu.Unlock()
+	return ms.GaugeMetrics
 }
 
 func (ms *MemStorage) GetAllCounters() map[string]float64 {
-    ms.mu.Lock()
-    defer ms.mu.Unlock()
-    return ms.CounterMetrics
+	ms.mu.Lock()
+	defer ms.mu.Unlock()
+	return ms.CounterMetrics
 }
 
 func (ms *MemStorage) SetGauge(key string, value float64) {

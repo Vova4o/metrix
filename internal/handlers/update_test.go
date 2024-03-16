@@ -14,7 +14,10 @@ import (
 
 func Test_handleUpdate(t *testing.T) {
 	// define an empty storage
-	storage := &storage.MemStorage{}
+	storage := &storage.MemStorage{
+		GaugeMetrics:   make(map[string]float64),
+		CounterMetrics: make(map[string]float64),
+	}
 
 	// Create a request to pass to our handler
 	handler := HandleUpdate(storage)
@@ -43,8 +46,10 @@ func Test_handleUpdate(t *testing.T) {
 }
 
 func Test_handleUpdate_counter(t *testing.T) {
-	// define an empty storage
-	storage := &storage.MemStorage{}
+	storage := &storage.MemStorage{
+		GaugeMetrics:   make(map[string]float64),
+		CounterMetrics: make(map[string]float64),
+	}
 
 	// Create a request to pass to our handler
 	handler := HandleUpdate(storage)
@@ -101,8 +106,10 @@ func Test_handleUpdate_error(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// define an empty storage
-			storage := &storage.MemStorage{}
+			storage := &storage.MemStorage{
+				GaugeMetrics:   make(map[string]float64),
+				CounterMetrics: make(map[string]float64),
+			}
 
 			// Create a request to pass to our handler
 			handler := HandleUpdate(storage)
