@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"Vova4o/metrix/internal/methods"
+	"Vova4o/metrix/internal/storage"
 	"context"
 	"net/http"
 	"net/http/httptest"
@@ -14,7 +14,7 @@ import (
 
 func Test_handleUpdate(t *testing.T) {
 	// define an empty storage
-	storage := &methods.MemStorage{
+	storage := &storage.MemStorage{
 		GaugeMetrics:   sync.Map{},
 		CounterMetrics: sync.Map{},
 	}
@@ -47,7 +47,7 @@ func Test_handleUpdate(t *testing.T) {
 
 func Test_handleUpdate_counter(t *testing.T) {
 	// define an empty storage
-	storage := &methods.MemStorage{
+	storage := &storage.MemStorage{
 		GaugeMetrics:   sync.Map{},
 		CounterMetrics: sync.Map{},
 	}
@@ -108,7 +108,7 @@ func Test_handleUpdate_error(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// define an empty storage
-			storage := &methods.MemStorage{
+			storage := &storage.MemStorage{
 				GaugeMetrics:   sync.Map{},
 				CounterMetrics: sync.Map{},
 			}

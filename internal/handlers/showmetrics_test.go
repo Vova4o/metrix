@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"Vova4o/metrix/internal/methods"
+	"Vova4o/metrix/internal/storage"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -12,7 +12,7 @@ import (
 
 func TestShowMetricsHandler(t *testing.T) {
 	// Create a storage and set some metrics
-	storage := &methods.MemStorage{
+	storage := &storage.MemStorage{
 		GaugeMetrics:   sync.Map{},
 		CounterMetrics: sync.Map{},
 	}

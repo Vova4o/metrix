@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"Vova4o/metrix/internal/methods"
+	"Vova4o/metrix/internal/storage"
 	"context"
 	"net/http"
 	"net/http/httptest"
@@ -42,7 +42,7 @@ func TestMetricValueUpdate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// define a storage with a metric
-			storage := &methods.MemStorage{
+			storage := &storage.MemStorage{
 				GaugeMetrics:   sync.Map{},
 				CounterMetrics: sync.Map{},
 			}
@@ -112,7 +112,7 @@ func TestMetricValueNotFound(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// define an empty storage
-			storage := &methods.MemStorage{
+			storage := &storage.MemStorage{
 				GaugeMetrics:   sync.Map{},
 				CounterMetrics: sync.Map{},
 			}
