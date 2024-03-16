@@ -5,14 +5,10 @@ import (
 
 	"Vova4o/metrix/internal/app"
 	"Vova4o/metrix/internal/config"
-	serverflag "Vova4o/metrix/internal/flag"
 	"Vova4o/metrix/internal/logger"
 )
 
 func main() {
-	// Parse the flags
-	serverflag.ParseFlags()
-
 	var err error
 	// Open a file for logging
 	config.LogfileServer, err = logger.Logger(config.ServerLogFile)

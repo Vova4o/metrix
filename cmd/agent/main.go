@@ -6,17 +6,13 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"Vova4o/metrix/internal/clientflag"
 	"Vova4o/metrix/internal/config"
+	allflags "Vova4o/metrix/internal/flag"
 	clientmetrics "Vova4o/metrix/internal/handlers/client"
 	"Vova4o/metrix/internal/logger"
 )
 
 func main() {
-
-	// Parse the flags
-	clientflag.ParseFlags()
-
 	// Open a file for logging
 	LogfileAgent, err := logger.Logger(config.AgentLogFile)
 	if err != nil {
@@ -34,9 +30,9 @@ func main() {
 	log.SetOutput(LogfileAgent)
 
 	//Start the cicle of collecting and sending metrics
-	pollTicker := time.NewTicker(time.Duration(*clientflag.PollInterval) * time.Second)
-	reportTicker := time.NewTicker(time.Duration(*clientflag.ReportInterval) * time.Second)
-	baseURL := *clientflag.ServerAddress
+	pollTicker := time.NewTicker(time.Duration(allflags.GetPollInterval()) * time.Second)
+	reportTicker := time.NewTicker(time.Duration(allflags.GetReportInterval()) * time.Second)
+	baseURL := allflags.GetServerAddress()
 
 	// Start the main loop
 	for {
