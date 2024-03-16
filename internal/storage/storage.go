@@ -1,63 +1,71 @@
 package storage
 
-import "sync"
+import (
+	"sync"
+)
 
-// MemStorage is a simple in-memory storage for metrics
-// It uses two sync.Map to store gauge and counter metrics
-// I had to change the type of the map to avoid concurrent map writes
 type MemStorage struct {
-	GaugeMetrics   sync.Map
-	CounterMetrics sync.Map
+	mu             sync.Mutex
+	GaugeMetrics   map[string]float64
+	CounterMetrics map[string]float64
 }
 
-// StorageInterface is an interface for storage backends
 type StorageInterface interface {
-	//SetGauge sets the value of a gauge
 	SetGauge(key string, value float64)
-	//GetGauge returns the value of a gauge
 	GetGauge(key string) (float64, bool)
-	//SetCounter sets the value of a counter
 	SetCounter(key string, value float64)
-	//GetCounter returns the value of a counter
 	GetCounter(key string) (float64, bool)
-	//Delete removes a metric from the storage
 	Delete(key string)
+	GetAllGauges() map[string]float64
+	GetAllCounters() map[string]float64
 }
 
-// SetGauge sets the value of a gauge
-func (m *MemStorage) SetGauge(key string, value float64) {
-	m.GaugeMetrics.Store(key, value)
+func (ms *MemStorage) GetAllGauges() map[string]float64 {
+    ms.mu.Lock()
+    defer ms.mu.Unlock()
+    return ms.GaugeMetrics
 }
 
-// GetGauge returns the value of a gauge
-func (m *MemStorage) GetGauge(key string) (float64, bool) {
-	value, exists := m.GaugeMetrics.Load(key)
-	if exists {
-		return value.(float64), exists
-	}
-	return 0, exists
+func (ms *MemStorage) GetAllCounters() map[string]float64 {
+    ms.mu.Lock()
+    defer ms.mu.Unlock()
+    return ms.CounterMetrics
 }
 
-// SetCounter increments the value of a counter
-func (m *MemStorage) SetCounter(key string, value float64) {
-	actual, loaded := m.CounterMetrics.LoadOrStore(key, value)
-	if loaded {
-		newValue := actual.(float64) + value
-		m.CounterMetrics.Store(key, newValue)
-	}
+func (ms *MemStorage) SetGauge(key string, value float64) {
+	ms.mu.Lock()
+	defer ms.mu.Unlock()
+
+	ms.GaugeMetrics[key] = value
 }
 
-// GetCounter returns the value of a counter
-func (m *MemStorage) GetCounter(key string) (float64, bool) {
-	value, exists := m.CounterMetrics.Load(key)
-	if exists {
-		return value.(float64), exists
-	}
-	return 0, exists
+func (ms *MemStorage) GetGauge(key string) (float64, bool) {
+	ms.mu.Lock()
+	defer ms.mu.Unlock()
+
+	value, exists := ms.GaugeMetrics[key]
+	return value, exists
 }
 
-// Delete removes a metric from the storage
-func (m *MemStorage) Delete(key string) {
-	m.GaugeMetrics.Delete(key)
-	m.CounterMetrics.Delete(key)
+func (ms *MemStorage) SetCounter(key string, value float64) {
+	ms.mu.Lock()
+	defer ms.mu.Unlock()
+
+	ms.CounterMetrics[key] += value
+}
+
+func (ms *MemStorage) GetCounter(key string) (float64, bool) {
+	ms.mu.Lock()
+	defer ms.mu.Unlock()
+
+	value, exists := ms.CounterMetrics[key]
+	return value, exists
+}
+
+func (ms *MemStorage) Delete(key string) {
+	ms.mu.Lock()
+	defer ms.mu.Unlock()
+
+	delete(ms.GaugeMetrics, key)
+	delete(ms.CounterMetrics, key)
 }

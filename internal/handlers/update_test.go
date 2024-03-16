@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"sync"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
@@ -15,10 +14,7 @@ import (
 
 func Test_handleUpdate(t *testing.T) {
 	// define an empty storage
-	storage := &storage.MemStorage{
-		GaugeMetrics:   sync.Map{},
-		CounterMetrics: sync.Map{},
-	}
+	storage := &storage.MemStorage{}
 
 	// Create a request to pass to our handler
 	handler := HandleUpdate(storage)
@@ -48,10 +44,7 @@ func Test_handleUpdate(t *testing.T) {
 
 func Test_handleUpdate_counter(t *testing.T) {
 	// define an empty storage
-	storage := &storage.MemStorage{
-		GaugeMetrics:   sync.Map{},
-		CounterMetrics: sync.Map{},
-	}
+	storage := &storage.MemStorage{}
 
 	// Create a request to pass to our handler
 	handler := HandleUpdate(storage)
@@ -109,10 +102,7 @@ func Test_handleUpdate_error(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// define an empty storage
-			storage := &storage.MemStorage{
-				GaugeMetrics:   sync.Map{},
-				CounterMetrics: sync.Map{},
-			}
+			storage := &storage.MemStorage{}
 
 			// Create a request to pass to our handler
 			handler := HandleUpdate(storage)
