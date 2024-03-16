@@ -27,6 +27,9 @@ func main() {
 	// Set the output destination of the standard logger
 	log.SetOutput(LogfileAgent)
 
-	app.NewAgent()
+	err = app.NewAgent()
+	if err != nil {
+		log.Fatalf("Failed to start the agent: %v", err)
+	}
 
 }
