@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"Vova4o/metrix/internal/methods"
+	"Vova4o/metrix/internal/storage"
 	"fmt"
 	"net/http"
 	"sync"
 )
 
 // ShowMetrics is an HTTP handler that shows all the metrics
-func ShowMetrics(storage *methods.MemStorage) http.HandlerFunc {
+func ShowMetrics(storage *storage.MemStorage) http.HandlerFunc {
 	// Return the actual handler function
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Get all the gauge metrics

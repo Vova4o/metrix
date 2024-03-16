@@ -1,4 +1,4 @@
-package methods
+package storage
 
 import "sync"
 
@@ -8,6 +8,20 @@ import "sync"
 type MemStorage struct {
 	GaugeMetrics   sync.Map
 	CounterMetrics sync.Map
+}
+
+// StorageInterface is an interface for storage backends
+type StorageInterface interface {
+	//SetGauge sets the value of a gauge
+	SetGauge(key string, value float64)
+	//GetGauge returns the value of a gauge
+	GetGauge(key string) (float64, bool)
+	//SetCounter sets the value of a counter
+	SetCounter(key string, value float64)
+	//GetCounter returns the value of a counter
+	GetCounter(key string) (float64, bool)
+	//Delete removes a metric from the storage
+	Delete(key string)
 }
 
 // SetGauge sets the value of a gauge

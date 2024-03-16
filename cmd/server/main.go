@@ -5,7 +5,7 @@ import (
 	serverflag "Vova4o/metrix/internal/flag"
 	"Vova4o/metrix/internal/handlers"
 	"Vova4o/metrix/internal/logger"
-	"Vova4o/metrix/internal/methods"
+	"Vova4o/metrix/internal/storage"
 	"fmt"
 	"log"
 	"net/http"
@@ -32,7 +32,7 @@ func main() {
 	mux := chi.NewRouter()
 
 	// Create a new storage
-	storage := &methods.MemStorage{
+	storage := &storage.MemStorage{
 		GaugeMetrics:   sync.Map{},
 		CounterMetrics: sync.Map{},
 	}

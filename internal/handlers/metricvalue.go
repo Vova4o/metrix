@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"Vova4o/metrix/internal/methods"
+	"Vova4o/metrix/internal/storage"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,7 +12,7 @@ import (
 
 
 // MetricValue is an HTTP handler that returns the value of a metric
-func MetricValue(storage *methods.MemStorage) http.HandlerFunc {
+func MetricValue(storage *storage.MemStorage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Get the metric type and name from the URL parameters
 		metricType := chi.URLParam(r, "metricType")

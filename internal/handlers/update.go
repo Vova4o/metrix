@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"Vova4o/metrix/internal/methods"
+	"Vova4o/metrix/internal/storage"
 	"log"
 	"net/http"
 	"strconv"
@@ -10,7 +10,7 @@ import (
 )
 
 // handleUpdate is an HTTP handler that updates a metric
-func HandleUpdate(storage *methods.MemStorage) http.HandlerFunc {
+func HandleUpdate(storage *storage.MemStorage) http.HandlerFunc {
 	// Return the actual handler function
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Get the metric type, name and value from the URL parameters
