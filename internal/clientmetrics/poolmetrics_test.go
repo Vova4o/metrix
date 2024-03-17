@@ -102,6 +102,8 @@ func TestReportMetrics(t *testing.T) {
 				GaugeMetrics:   tt.gaugeMetrics,
 				CounterMetrics: tt.counterMetrics,
 				Client:         tt.client,
+				TextSender:     &TextMetricSender{},
+				JSONSender:     &JSONMetricSender{},
 			}
 
 			if err := ma.ReportMetrics("http://localhost"); (err != nil) != tt.wantErr {
