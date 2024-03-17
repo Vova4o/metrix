@@ -1,9 +1,6 @@
 package clientmetrics
 
 import (
-	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/go-resty/resty/v2"
@@ -109,76 +106,6 @@ func TestReportMetrics(t *testing.T) {
 
 			if err := ma.ReportMetrics("http://localhost"); (err != nil) != tt.wantErr {
 				t.Errorf("ReportMetrics() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-type MockRestClient struct {
-	client *resty.Client
-}
-
-func (m *MockRestClient) R() *resty.Request {
-	return m.client.R()
-}
-
-func TestSendMetric(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		if strings.HasPrefix(req.URL.Path, "/error") {
-			rw.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		rw.WriteHeader(http.StatusOK)
-
-	}))
-	defer server.Close()
-
-	tests := []struct {
-		name    string
-		client  *MockRestClient
-		url     string
-		wantErr bool
-	}{
-		{
-			name: "Test Case 1 - Valid Client and Metrics",
-			client: &MockRestClient{
-				client: resty.New(),
-			},
-			url:     server.URL,
-			wantErr: false,
-		},
-		{
-			name: "Test Case 2 - Nil Client",
-			client: &MockRestClient{
-				client: nil,
-			},
-			url:     server.URL,
-			wantErr: true,
-		},
-		{
-			name: "Test Case 3 - Invalid URL",
-			client: &MockRestClient{
-				client: resty.New(),
-			},
-			url:     "",
-			wantErr: true,
-		},
-		{
-			name: "Test Case 4 - Status Code 500",
-			client: &MockRestClient{
-				client: resty.New(),
-			},
-			url:     server.URL + "/error",
-			wantErr: true,
-		},
-		// Add more test cases as needed
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := SendMetric(tt.client.client, "gauge", "RandomValue", "0.5", tt.url)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SendMetric() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

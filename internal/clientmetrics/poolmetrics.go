@@ -5,25 +5,27 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"net/http"
 	"runtime"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
 	allflags "Vova4o/metrix/internal/flag"
+
 	"github.com/go-resty/resty/v2"
 )
 
 type Metrics struct {
-	GaugeMetrics   map[string]float64
-	CounterMetrics map[string]int64
+	GaugeMetrics   map[string]float64 `json:"gauge"`
+	CounterMetrics map[string]int64 `json:"counter"`
 	Client         *resty.Client
 	PollTicker     *time.Ticker
 	ReportTicker   *time.Ticker
 	BaseURL        string
+	TextSender         MetricSender
+	JSONSender 	   MetricSender
 }
+
 type MetricsClient interface {
 	PollMetrics() error
 	ReportMetrics(baseURL string) error
@@ -37,6 +39,8 @@ func NewMetrics(client *resty.Client) *Metrics {
 		PollTicker:     time.NewTicker(time.Duration(allflags.GetPollInterval()) * time.Second),
 		ReportTicker:   time.NewTicker(time.Duration(allflags.GetReportInterval()) * time.Second),
 		BaseURL:        allflags.GetServerAddress(),
+		TextSender:         &TextMetricSender{},
+		JSONSender:         &JSONMetricSender{},
 	}
 }
 
@@ -45,7 +49,7 @@ func (ma *Metrics) PollMetrics() error {
 	runtime.ReadMemStats(&memStats)
 
 	ma.GaugeMetrics = map[string]float64{
-		"Alloc":         float64(memStats.Alloc),
+		"Alloc":         float64(memStats.Alloc), 
 		"BuckHashSys":   float64(memStats.BuckHashSys),
 		"Frees":         float64(memStats.Frees),
 		"GCCPUFraction": float64(memStats.GCCPUFraction),
@@ -96,9 +100,12 @@ func (ma *Metrics) ReportMetrics(baseURL string) error {
 
 	reportMetric := func(metricType, name, value string) {
 		defer wg.Done()
-		if err := SendMetric(ma.Client, metricType, name, value, baseURL); err != nil {
+		if err := ma.TextSender.SendMetric(ma.Client, metricType, name, value, baseURL); err != nil {
 			errs <- fmt.Errorf("error sending %s metric %s: %v", metricType, name, err)
 		}
+		if err := ma.JSONSender.SendMetric(ma.Client, metricType, name, value, baseURL); err != nil {
+            errs <- fmt.Errorf("error sending %s metric %s: %v", metricType, name, err)
+        }
 	}
 
 	for metricName, metricValue := range ma.GaugeMetrics {
@@ -118,31 +125,6 @@ func (ma *Metrics) ReportMetrics(baseURL string) error {
 
 	for err := range errs {
 		log.Println(err)
-	}
-
-	return nil
-}
-
-func SendMetric(client *resty.Client, metricType, metricName, metricValue, baseURL string) error {
-	if client == nil {
-		return errors.New("client is nil")
-	}
-
-	if !strings.HasPrefix(baseURL, "http://") {
-		baseURL = "http://" + baseURL
-	}
-	resp, err := client.R().
-		SetHeader("Content-Type", "text/plain").
-		Post(fmt.Sprintf("%s/update/%s/%s/%s", baseURL, metricType, metricName, metricValue))
-
-	if err != nil {
-		log.Printf("failed to send %s metric %s: %v", metricType, metricName, err)
-		return fmt.Errorf("failed to send %s metric %s: %v", metricType, metricName, err)
-	}
-
-	if resp.StatusCode() != http.StatusOK {
-		log.Printf("server returned non-OK status for %s metric %s: %v", metricType, metricName, resp.Status())
-		return fmt.Errorf("server returned non-OK status for %s metric %s: %v", metricType, metricName, resp.Status())
 	}
 
 	return nil

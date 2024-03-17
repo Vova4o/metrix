@@ -17,7 +17,7 @@ func Test_handleUpdate(t *testing.T) {
 	storage := storage.NewMemStorage()
 
 	// Create a request to pass to our handler
-	handler := HandleUpdate(storage)
+	handler := HandleUpdateText(storage)
 
 	// Create a new HTTP request
 	req, err := http.NewRequest("POST", "", nil)
@@ -46,7 +46,7 @@ func Test_handleUpdate_counter(t *testing.T) {
 	storage := storage.NewMemStorage()
 
 	// Create a request to pass to our handler
-	handler := HandleUpdate(storage)
+	handler := HandleUpdateText(storage)
 
 	// Create a new HTTP request
 	req, err := http.NewRequest("POST", "", nil)
@@ -103,7 +103,7 @@ func Test_handleUpdate_error(t *testing.T) {
 			storage := storage.NewMemStorage()
 
 			// Create a request to pass to our handler
-			handler := HandleUpdate(storage)
+			handler := HandleUpdateText(storage)
 
 			// Create a new HTTP request
 			req, err := http.NewRequest("POST", "", nil)
