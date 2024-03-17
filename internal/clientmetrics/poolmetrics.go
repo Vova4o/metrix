@@ -17,13 +17,13 @@ import (
 
 type Metrics struct {
 	GaugeMetrics   map[string]float64 `json:"gauge"`
-	CounterMetrics map[string]int64 `json:"counter"`
+	CounterMetrics map[string]int64   `json:"counter"`
 	Client         *resty.Client
 	PollTicker     *time.Ticker
 	ReportTicker   *time.Ticker
 	BaseURL        string
-	TextSender         MetricSender
-	JSONSender 	   MetricSender
+	TextSender     MetricSender
+	JSONSender     MetricSender
 }
 
 type MetricsClient interface {
@@ -39,8 +39,8 @@ func NewMetrics(client *resty.Client) *Metrics {
 		PollTicker:     time.NewTicker(time.Duration(allflags.GetPollInterval()) * time.Second),
 		ReportTicker:   time.NewTicker(time.Duration(allflags.GetReportInterval()) * time.Second),
 		BaseURL:        allflags.GetServerAddress(),
-		TextSender:         &TextMetricSender{},
-		JSONSender:         &JSONMetricSender{},
+		TextSender:     &TextMetricSender{},
+		JSONSender:     &JSONMetricSender{},
 	}
 }
 
@@ -49,7 +49,7 @@ func (ma *Metrics) PollMetrics() error {
 	runtime.ReadMemStats(&memStats)
 
 	ma.GaugeMetrics = map[string]float64{
-		"Alloc":         float64(memStats.Alloc), 
+		"Alloc":         float64(memStats.Alloc),
 		"BuckHashSys":   float64(memStats.BuckHashSys),
 		"Frees":         float64(memStats.Frees),
 		"GCCPUFraction": float64(memStats.GCCPUFraction),
@@ -94,6 +94,12 @@ func (ma *Metrics) ReportMetrics(baseURL string) error {
 	if ma.Client == nil {
 		return errors.New("client is nil")
 	}
+	if ma.TextSender == nil {
+		return errors.New("text sender is nil")
+	}
+	if ma.JSONSender == nil {
+		return errors.New("json sender is nil")
+	}
 
 	errs := make(chan error)
 	var wg sync.WaitGroup
@@ -104,8 +110,8 @@ func (ma *Metrics) ReportMetrics(baseURL string) error {
 			errs <- fmt.Errorf("error sending %s metric %s: %v", metricType, name, err)
 		}
 		if err := ma.JSONSender.SendMetric(ma.Client, metricType, name, value, baseURL); err != nil {
-            errs <- fmt.Errorf("error sending %s metric %s: %v", metricType, name, err)
-        }
+			errs <- fmt.Errorf("error sending %s metric %s: %v", metricType, name, err)
+		}
 	}
 
 	for metricName, metricValue := range ma.GaugeMetrics {
