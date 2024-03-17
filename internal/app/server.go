@@ -28,7 +28,7 @@ func NewServer() error {
 
 	// Add the handlers to the router
 	mux.Post("/update/{metricType}/{metricName}/{metricValue}", handlers.HandleUpdateText(memStorage))
-	mux.Post("/update/json/", handlers.HandleUpdateJSON(memStorage))
+	mux.Post("/update/value/", handlers.HandleUpdateJSON(memStorage))
 
 	mux.Get("/", handlers.ShowMetrics(memStorage))
 

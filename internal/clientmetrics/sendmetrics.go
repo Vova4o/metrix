@@ -74,7 +74,7 @@ func (j *JSONMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(jsonDate).
-		Post(fmt.Sprintf("%s/update/json/", baseURL))
+		Post(fmt.Sprintf("%s/update/value/", baseURL))
 
 	if err != nil {
 		log.Printf("failed to send %s metric %s: %v", metricType, metricName, err)
