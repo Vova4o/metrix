@@ -20,11 +20,8 @@ func NewServer() error {
 	mux := chi.NewRouter()
 
 	// Create a new MemStorage
-	memStorage := &storage.MemStorage{
-		GaugeMetrics:   make(map[string]float64),
-		CounterMetrics: make(map[string]float64),
-	}
-
+	memStorage := storage.NewMemStorage()
+	
 	mux.Use(middleware.RequestLogger(&middleware.DefaultLogFormatter{Logger: log.New(config.LogfileServer, "", log.LstdFlags)}))
 	mux.Use(middleware.Logger)
 	mux.Use(middleware.Recoverer)

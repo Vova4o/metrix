@@ -8,6 +8,15 @@ type MemStorage struct {
 	mu             sync.Mutex
 	GaugeMetrics   map[string]float64
 	CounterMetrics map[string]float64
+	Err error 
+}
+
+func NewMemStorage() *MemStorage {
+	return &MemStorage{
+		GaugeMetrics:   make(map[string]float64),
+		CounterMetrics: make(map[string]float64),
+		Err: nil,
+	}
 }
 
 func (ms *MemStorage) GetAllGauges() map[string]float64 {
