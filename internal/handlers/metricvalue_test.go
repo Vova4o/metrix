@@ -42,14 +42,12 @@ func TestMetricValueUpdate(t *testing.T) {
     for _, tt := range tests {
         t.Run(tt.name, func(t *testing.T) {
             // define a storage with a metric
-            storage := &storage.MemStorage{
-                GaugeMetrics:   make(map[string]float64),
-                CounterMetrics: make(map[string]float64),
-            }
+            storage := storage.NewMemStorage()
+            
             if tt.metricType == "gauge" {
                 storage.SetGauge(tt.metricName, tt.setValue)
             } else if tt.metricType == "counter" {
-                storage.SetCounter(tt.metricName, tt.setValue)
+                storage.SetCounter(tt.metricName, int64(tt.setValue))
             }
 
             // Create a request to pass to our handler
@@ -112,10 +110,7 @@ func TestMetricValueNotFound(t *testing.T) {
     for _, tt := range tests {
         t.Run(tt.name, func(t *testing.T) {
             // define an empty storage
-            storage := &storage.MemStorage{
-                GaugeMetrics:   make(map[string]float64),
-                CounterMetrics: make(map[string]float64),
-            }
+            storage := storage.NewMemStorage()
 
             // Create a request to pass to our handler
             handler := MetricValue(storage)

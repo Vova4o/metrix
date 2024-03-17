@@ -32,7 +32,7 @@ func HandleUpdate(storage storage.StorageInterface) http.HandlerFunc {
             storage.SetGauge(metricName, value)
         case "counter":
             // Parse the metric value as a float
-            value, err := strconv.ParseFloat(metricValue, 64)
+            value, err := strconv.ParseInt(metricValue, 10, 64)
             if err != nil {
                 logAndRespondError(w, err, "Invalid metric value", http.StatusBadRequest)
                 return

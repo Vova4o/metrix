@@ -11,16 +11,10 @@ import (
 	"Vova4o/metrix/internal/storage"
 )
 
-func NewMemStorage() *storage.MemStorage {
-	return &storage.MemStorage{
-		GaugeMetrics:   make(map[string]float64),
-		CounterMetrics: make(map[string]float64),
-	}
-}
 
 func TestShowMetricsHandler_Success(t *testing.T) {
 	// Create a storage and set some metrics
-	storage := NewMemStorage()
+	storage := storage.NewMemStorage()
 	storage.SetGauge("gaugeTest", 10.0000)
 	storage.SetCounter("counterTest", 20)
 
