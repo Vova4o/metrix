@@ -61,10 +61,10 @@ func (ms *MemStorage) GetCounter(key string) (int64, bool) {
 	return value, exists
 }
 
-func (ms *MemStorage) Delete(key string) {
-	ms.mu.Lock()
-	defer ms.mu.Unlock()
+// func (ms *MemStorage) Delete(key string) {
+// 	ms.mu.Lock()
+// 	defer ms.mu.Unlock()
 
-	delete(ms.GaugeMetrics, key)
-	delete(ms.CounterMetrics, key)
-}
+// 	delete(ms.GaugeMetrics, key)
+// 	delete(ms.CounterMetrics, key)
+// }

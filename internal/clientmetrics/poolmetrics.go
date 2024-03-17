@@ -10,36 +10,37 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
+	allflags "Vova4o/metrix/internal/flag"
 	"github.com/go-resty/resty/v2"
 )
-
-type RestClient interface {
-	R() *resty.Request
-}
-
-type MetricsAgent struct {
-	Metrics *Metrics
-	Client  *resty.Client
-}
 
 type Metrics struct {
 	GaugeMetrics   map[string]float64
 	CounterMetrics map[string]int64
+	Client         *resty.Client
+	PollTicker     *time.Ticker
+	ReportTicker   *time.Ticker
+	BaseURL        string
 }
 type MetricsClient interface {
-	PollMetrics()
-	ReportMetrics(baseURL string)
+	PollMetrics() error
+	ReportMetrics(baseURL string) error
 }
 
-func NewMetrics() *Metrics {
+func NewMetrics(client *resty.Client) *Metrics {
 	return &Metrics{
 		GaugeMetrics:   make(map[string]float64),
 		CounterMetrics: make(map[string]int64),
+		Client:         client,
+		PollTicker:     time.NewTicker(time.Duration(allflags.GetPollInterval()) * time.Second),
+		ReportTicker:   time.NewTicker(time.Duration(allflags.GetReportInterval()) * time.Second),
+		BaseURL:        allflags.GetServerAddress(),
 	}
 }
 
-func (m *Metrics) PollMetrics() {
+func (m *Metrics) PollMetrics() error {
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
 
@@ -75,11 +76,16 @@ func (m *Metrics) PollMetrics() {
 	}
 
 	m.CounterMetrics["PoolCount"]++
+
+	return nil
 }
 
-func (ma *MetricsAgent) ReportMetrics(baseURL string) error {
-	if ma.Metrics == nil {
-		return errors.New("metrics is nil")
+func (ma *Metrics) ReportMetrics(baseURL string) error {
+	if ma.GaugeMetrics == nil {
+		return errors.New("random value is nil")
+	}
+	if ma.CounterMetrics == nil {
+		return errors.New("counter metrics is nil")
 	}
 	if ma.Client == nil {
 		return errors.New("client is nil")
@@ -95,12 +101,12 @@ func (ma *MetricsAgent) ReportMetrics(baseURL string) error {
 		}
 	}
 
-	for metricName, metricValue := range ma.Metrics.GaugeMetrics {
+	for metricName, metricValue := range ma.GaugeMetrics {
 		wg.Add(1)
 		go reportMetric("gauge", metricName, strconv.FormatFloat(metricValue, 'f', -1, 64))
 	}
 
-	for metricName, metricValue := range ma.Metrics.CounterMetrics {
+	for metricName, metricValue := range ma.CounterMetrics {
 		wg.Add(1)
 		go reportMetric("counter", metricName, strconv.FormatInt(metricValue, 10))
 	}
@@ -117,11 +123,11 @@ func (ma *MetricsAgent) ReportMetrics(baseURL string) error {
 	return nil
 }
 
-func SendMetric(client RestClient, metricType, metricName, metricValue, baseURL string) error {
+func SendMetric(client *resty.Client, metricType, metricName, metricValue, baseURL string) error {
 	if client == nil {
-        return errors.New("client is nil")
-    }
-	
+		return errors.New("client is nil")
+	}
+
 	if !strings.HasPrefix(baseURL, "http://") {
 		baseURL = "http://" + baseURL
 	}

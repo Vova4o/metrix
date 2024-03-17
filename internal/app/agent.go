@@ -1,13 +1,10 @@
 package app
 
 import (
-	"time"
-
-	"Vova4o/metrix/internal/clientmetrics"
-	allflags "Vova4o/metrix/internal/flag"
-
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
+
+	"Vova4o/metrix/internal/clientmetrics"
 )
 
 func NewAgent() error {
@@ -31,27 +28,18 @@ func NewAgent() error {
 		return nil
 	})
 
-	m := clientmetrics.NewMetrics() // Create new Metrics
-
-	ma := &clientmetrics.MetricsAgent{
-		Metrics: m, // Use Metrics instead of Gauge and Counter
-		Client:  client,
-	}
-
-	pollTicker := time.NewTicker(time.Duration(allflags.GetPollInterval()) * time.Second)
-	reportTicker := time.NewTicker(time.Duration(allflags.GetReportInterval()) * time.Second)
-	baseURL := allflags.GetServerAddress()
+	m := clientmetrics.NewMetrics(client) // Create new Metrics
 
 	// Start the main loop
 	for {
 		// Wait for the next tick
 		select {
 		// When the pollTicker ticks, we collect the metrics
-		case <-pollTicker.C:
-			ma.Metrics.PollMetrics()
+		case <-m.PollTicker.C:
+			m.PollMetrics()
 		// When the reportTicker ticks, we send the metrics
-		case <-reportTicker.C:
-			ma.ReportMetrics(baseURL)
+		case <-m.ReportTicker.C:
+			m.ReportMetrics(m.BaseURL)
 		}
 	}
 

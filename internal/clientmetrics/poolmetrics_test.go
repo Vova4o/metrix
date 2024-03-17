@@ -3,10 +3,19 @@ package clientmetrics
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/go-resty/resty/v2"
 )
+
+func TestNewMetrics(t *testing.T) {
+	client := resty.New()
+	m := NewMetrics(client)
+	if m == nil {
+		t.Errorf("NewMetrics() = %v, want a valid Metrics object", m)
+	}
+}
 
 func TestMetrics_PollMetrics(t *testing.T) {
 	type fields struct {
@@ -52,69 +61,54 @@ func TestMetrics_PollMetrics(t *testing.T) {
 	}
 }
 
-func TestMetricsAgent_ReportMetrics(t *testing.T) {
-	type fields struct {
-		Metrics *Metrics
-		Client  *resty.Client
-	}
-	type args struct {
-		baseURL string
-	}
+func TestReportMetrics(t *testing.T) {
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
+		name           string
+		gaugeMetrics   map[string]float64
+		counterMetrics map[string]int64
+		client         *resty.Client
+		wantErr        bool
 	}{
 		{
-			name: "Test Case 1 - Valid Metrics and Client",
-			fields: fields{
-				Metrics: &Metrics{
-					GaugeMetrics:   map[string]float64{"RandomValue": 0.5},
-					CounterMetrics: map[string]int64{"CounterValue": 3},
-				},
-				Client: resty.New(),
-			},
-			args: args{
-				baseURL: "http://localhost:8080/metrics", // replace with your actual server URL
-			},
-			wantErr: false,
+			name:           "Nil GaugeMetrics",
+			gaugeMetrics:   nil,
+			counterMetrics: map[string]int64{"test": 1},
+			client:         &resty.Client{},
+			wantErr:        true,
 		},
 		{
-			name: "Test Case 2 - Nil Metrics",
-			fields: fields{
-				Metrics: nil,
-				Client:  resty.New(),
-			},
-			args: args{
-				baseURL: "http://localhost:8080/metrics", // replace with your actual server URL
-			},
-			wantErr: true,
+			name:           "Nil CounterMetrics",
+			gaugeMetrics:   map[string]float64{"test": 1.0},
+			counterMetrics: nil,
+			client:         &resty.Client{},
+			wantErr:        true,
 		},
 		{
-			name: "Test Case 3 - Nil Client",
-			fields: fields{
-				Metrics: &Metrics{
-					GaugeMetrics:   map[string]float64{"RandomValue": 0.5},
-					CounterMetrics: map[string]int64{"CounterValue": 3},
-				},
-				Client: nil,
-			},
-			args: args{
-				baseURL: "http://localhost:8080/metrics", // replace with your actual server URL
-			},
-			wantErr: true,
+			name:           "Nil Client",
+			gaugeMetrics:   map[string]float64{"test": 1.0},
+			counterMetrics: map[string]int64{"test": 1},
+			client:         nil,
+			wantErr:        true,
+		},
+		{
+			name:           "Valid Metrics",
+			gaugeMetrics:   map[string]float64{"test": 1.0},
+			counterMetrics: map[string]int64{"test": 1},
+			client:         resty.New(),
+			wantErr:        false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ma := &MetricsAgent{
-				Metrics: tt.fields.Metrics,
-				Client:  tt.fields.Client,
+			ma := &Metrics{
+				GaugeMetrics:   tt.gaugeMetrics,
+				CounterMetrics: tt.counterMetrics,
+				Client:         tt.client,
 			}
-			if err := ma.ReportMetrics(tt.args.baseURL); (err != nil) != tt.wantErr {
-				t.Errorf("MetricsAgent.ReportMetrics() error = %v, wantErr %v", err, tt.wantErr)
+
+			if err := ma.ReportMetrics("http://localhost"); (err != nil) != tt.wantErr {
+				t.Errorf("ReportMetrics() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -130,13 +124,19 @@ func (m *MockRestClient) R() *resty.Request {
 
 func TestSendMetric(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		if strings.HasPrefix(req.URL.Path, "/error") {
+			rw.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		rw.WriteHeader(http.StatusOK)
+
 	}))
 	defer server.Close()
 
 	tests := []struct {
 		name    string
-		client  RestClient
+		client  *MockRestClient
+		url     string
 		wantErr bool
 	}{
 		{
@@ -144,14 +144,39 @@ func TestSendMetric(t *testing.T) {
 			client: &MockRestClient{
 				client: resty.New(),
 			},
+			url:     server.URL,
 			wantErr: false,
+		},
+		{
+			name: "Test Case 2 - Nil Client",
+			client: &MockRestClient{
+				client: nil,
+			},
+			url:     server.URL,
+			wantErr: true,
+		},
+		{
+			name: "Test Case 3 - Invalid URL",
+			client: &MockRestClient{
+				client: resty.New(),
+			},
+			url:     "",
+			wantErr: true,
+		},
+		{
+			name: "Test Case 4 - Status Code 500",
+			client: &MockRestClient{
+				client: resty.New(),
+			},
+			url:     server.URL + "/error",
+			wantErr: true,
 		},
 		// Add more test cases as needed
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := SendMetric(tt.client, "gauge", "RandomValue", "0.5", server.URL)
+			err := SendMetric(tt.client.client, "gauge", "RandomValue", "0.5", tt.url)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SendMetric() error = %v, wantErr %v", err, tt.wantErr)
 			}

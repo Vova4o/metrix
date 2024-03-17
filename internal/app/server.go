@@ -21,13 +21,14 @@ func NewServer() error {
 
 	// Create a new MemStorage
 	memStorage := storage.NewMemStorage()
-	
+
 	mux.Use(middleware.RequestLogger(&middleware.DefaultLogFormatter{Logger: log.New(config.LogfileServer, "", log.LstdFlags)}))
 	mux.Use(middleware.Logger)
 	mux.Use(middleware.Recoverer)
 
 	// Add the handlers to the router
 	mux.Post("/update/{metricType}/{metricName}/{metricValue}", handlers.HandleUpdate(memStorage))
+	// mux.Post("/update/json", handlers.HandleUpdateJSON(memStorage))
 
 	mux.Get("/", handlers.ShowMetrics(memStorage))
 
@@ -35,5 +36,5 @@ func NewServer() error {
 
 	fmt.Printf("Starting server on %s\n", allflags.GetServerAddress())
 	// Start the server
-	return http.ListenAndServe(allflags.GetServerAddress(), mux)	
+	return http.ListenAndServe(allflags.GetServerAddress(), mux)
 }
