@@ -40,11 +40,11 @@ func NewMetrics(client *resty.Client) *Metrics {
 	}
 }
 
-func (m *Metrics) PollMetrics() error {
+func (ma *Metrics) PollMetrics() error {
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
 
-	m.GaugeMetrics = map[string]float64{
+	ma.GaugeMetrics = map[string]float64{
 		"Alloc":         float64(memStats.Alloc),
 		"BuckHashSys":   float64(memStats.BuckHashSys),
 		"Frees":         float64(memStats.Frees),
@@ -75,7 +75,7 @@ func (m *Metrics) PollMetrics() error {
 		"RandomValue":   rand.Float64(),
 	}
 
-	m.CounterMetrics["PoolCount"]++
+	ma.CounterMetrics["PoolCount"]++
 
 	return nil
 }
