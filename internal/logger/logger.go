@@ -6,7 +6,7 @@ import (
 )
 
 func Logger(name string) (*os.File, error) {
-	logFile, err := os.OpenFile(name, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	logFile, err := os.OpenFile(name, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o666)
 	if err != nil {
 		fmt.Printf("Failed to open log file: %v\n", err)
 		return nil, err

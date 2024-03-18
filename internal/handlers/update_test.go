@@ -83,6 +83,7 @@ func Test_handleUpdate(t *testing.T) {
 		})
 	}
 }
+
 func TestHandleUpdateJSON(t *testing.T) {
 	tests := []struct {
 		name           string

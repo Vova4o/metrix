@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"Vova4o/metrix/internal/clientmetrics"
+
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
-
-	"Vova4o/metrix/internal/clientmetrics"
 )
 
 // NewAgent creates and starts a new Metrics agent.
@@ -17,7 +17,6 @@ import (
 //
 //	error: an error occurred while creating or running the agent.
 func NewAgent(ctx context.Context, client *resty.Client) error {
-
 	fmt.Println("Hit the NewAgent function")
 
 	// Add a middleware logger

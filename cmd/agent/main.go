@@ -38,5 +38,4 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to start the agent: %v", err)
 	}
-
 }

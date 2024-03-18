@@ -15,7 +15,6 @@ import (
 )
 
 func NewServer() error {
-
 	// Create a new router
 	mux := chi.NewRouter()
 
