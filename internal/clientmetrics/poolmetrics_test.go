@@ -64,8 +64,8 @@ func TestReportMetrics(t *testing.T) {
 		gaugeMetrics   map[string]float64
 		counterMetrics map[string]int64
 		client         *resty.Client
-		senderText         MetricSender
-		senderJSON         MetricSender
+		senderText     MetricSender
+		senderJSON     MetricSender
 		wantErr        bool
 	}{
 		{
@@ -73,8 +73,8 @@ func TestReportMetrics(t *testing.T) {
 			gaugeMetrics:   nil,
 			counterMetrics: map[string]int64{"test": 1},
 			client:         &resty.Client{},
-			senderText:         &TextMetricSender{},
-			senderJSON:    &JSONMetricSender{},
+			senderText:     &TextMetricSender{},
+			senderJSON:     &JSONMetricSender{},
 			wantErr:        true,
 		},
 		{
@@ -82,8 +82,8 @@ func TestReportMetrics(t *testing.T) {
 			gaugeMetrics:   map[string]float64{"test": 1.0},
 			counterMetrics: nil,
 			client:         &resty.Client{},
-			senderText:         &TextMetricSender{},
-			senderJSON:    &JSONMetricSender{},
+			senderText:     &TextMetricSender{},
+			senderJSON:     &JSONMetricSender{},
 			wantErr:        true,
 		},
 		{
@@ -91,8 +91,8 @@ func TestReportMetrics(t *testing.T) {
 			gaugeMetrics:   map[string]float64{"test": 1.0},
 			counterMetrics: map[string]int64{"test": 1},
 			client:         nil,
-			senderText:         &TextMetricSender{},
-			senderJSON:    &JSONMetricSender{},
+			senderText:     &TextMetricSender{},
+			senderJSON:     &JSONMetricSender{},
 			wantErr:        true,
 		},
 		{
@@ -100,8 +100,8 @@ func TestReportMetrics(t *testing.T) {
 			gaugeMetrics:   map[string]float64{"test": 1.0},
 			counterMetrics: map[string]int64{"test": 1},
 			client:         resty.New(),
-			senderText:         &TextMetricSender{},
-			senderJSON:    &JSONMetricSender{},
+			senderText:     &TextMetricSender{},
+			senderJSON:     &JSONMetricSender{},
 			wantErr:        false,
 		},
 		{
@@ -109,8 +109,8 @@ func TestReportMetrics(t *testing.T) {
 			gaugeMetrics:   map[string]float64{"test": 1.0},
 			counterMetrics: map[string]int64{"test": 1},
 			client:         resty.New(),
-			senderText:         nil,
-			senderJSON:    &JSONMetricSender{},
+			senderText:     nil,
+			senderJSON:     &JSONMetricSender{},
 			wantErr:        true,
 		},
 		{
@@ -118,8 +118,8 @@ func TestReportMetrics(t *testing.T) {
 			gaugeMetrics:   map[string]float64{"test": 1.0},
 			counterMetrics: map[string]int64{"test": 1},
 			client:         resty.New(),
-			senderText:         &TextMetricSender{},
-			senderJSON:    nil,
+			senderText:     &TextMetricSender{},
+			senderJSON:     nil,
 			wantErr:        true,
 		},
 	}

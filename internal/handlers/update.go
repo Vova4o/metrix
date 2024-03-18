@@ -54,7 +54,6 @@ func logAndRespondError(w http.ResponseWriter, err error, message string, code i
 	http.Error(w, message, code)
 }
 
-
 type Metric struct {
 	Type  string `json:"type"`
 	Name  string `json:"name"`
@@ -62,32 +61,32 @@ type Metric struct {
 }
 
 func HandleUpdateJSON(storage storage.StorageInterface) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        var metric Metric
-        decoder := json.NewDecoder(r.Body)
-        if err := decoder.Decode(&metric); err != nil {
-            logAndRespondError(w, err, "Failed to decode JSON", http.StatusBadRequest)
-            return
-        }
-        switch metric.Type {
-        case "gauge":
-            value, err := strconv.ParseFloat(metric.Value, 64)
-            if err != nil {
-                logAndRespondError(w, err, "Invalid metric value", http.StatusBadRequest)
-                return
-            }
-            storage.SetGauge(metric.Name, value)
-        case "counter":
-            value, err := strconv.ParseInt(metric.Value, 10, 64)
-            if err != nil {
-                logAndRespondError(w, err, "Invalid metric value", http.StatusBadRequest)
-                return
-            }
-            storage.SetCounter(metric.Name, value)
-        default:
-            log.Printf("Invalid metric type: %s", metric.Type)
-            http.Error(w, "Invalid metric type", http.StatusBadRequest)
-        }
-        w.WriteHeader(http.StatusOK)
-    }
+	return func(w http.ResponseWriter, r *http.Request) {
+		var metric Metric
+		decoder := json.NewDecoder(r.Body)
+		if err := decoder.Decode(&metric); err != nil {
+			logAndRespondError(w, err, "Failed to decode JSON", http.StatusBadRequest)
+			return
+		}
+		switch metric.Type {
+		case "gauge":
+			value, err := strconv.ParseFloat(metric.Value, 64)
+			if err != nil {
+				logAndRespondError(w, err, "Invalid metric value", http.StatusBadRequest)
+				return
+			}
+			storage.SetGauge(metric.Name, value)
+		case "counter":
+			value, err := strconv.ParseInt(metric.Value, 10, 64)
+			if err != nil {
+				logAndRespondError(w, err, "Invalid metric value", http.StatusBadRequest)
+				return
+			}
+			storage.SetCounter(metric.Name, value)
+		default:
+			log.Printf("Invalid metric type: %s", metric.Type)
+			http.Error(w, "Invalid metric type", http.StatusBadRequest)
+		}
+		w.WriteHeader(http.StatusOK)
+	}
 }

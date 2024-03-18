@@ -11,7 +11,7 @@ import (
 
 // ShowMetrics is an HTTP handler that shows all the metrics
 func ShowMetrics(storage storage.StorageInterface, tempFile string) http.HandlerFunc {
-	
+
 	// Parse the template file
 	tmpl, err := template.ParseFiles(filepath.Join("../../templates", tempFile))
 	if err != nil {

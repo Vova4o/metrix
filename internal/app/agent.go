@@ -41,7 +41,7 @@ func NewAgent(ctx context.Context, client *resty.Client) error {
 	metrics := clientmetrics.NewMetrics(client) // Create new Metrics
 
 	runMetricsLoop(ctx, metrics)
-	
+
 	return nil
 }
 
