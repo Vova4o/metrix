@@ -4,6 +4,10 @@ import (
 	"sync"
 )
 
+// MemStorage is a simple in-memory storage
+// that implements the StorageInterface
+// It uses a mutex to synchronize access to the maps
+// GaugeMetrics and CounterMetrics
 type MemStorage struct {
 	mu             sync.Mutex
 	GaugeMetrics   map[string]float64
@@ -11,6 +15,9 @@ type MemStorage struct {
 	Err            error
 }
 
+// NewMemStorage creates a new MemStorage
+// and returns a pointer to it
+// GaugeMetrics and CounterMetrics are initialized as empty maps
 func NewMemStorage() *MemStorage {
 	return &MemStorage{
 		GaugeMetrics:   make(map[string]float64),
@@ -19,18 +26,21 @@ func NewMemStorage() *MemStorage {
 	}
 }
 
+// GetAllGauges returns a map of all gauge metrics
 func (ms *MemStorage) GetAllGauges() map[string]float64 {
 	ms.mu.Lock()
 	defer ms.mu.Unlock()
 	return ms.GaugeMetrics
 }
 
+// GetAllCounters returns a map of all counter metrics
 func (ms *MemStorage) GetAllCounters() map[string]int64 {
 	ms.mu.Lock()
 	defer ms.mu.Unlock()
 	return ms.CounterMetrics
 }
 
+// SetGauge sets the value of a gauge metric
 func (ms *MemStorage) SetGauge(key string, value float64) {
 	ms.mu.Lock()
 	defer ms.mu.Unlock()
@@ -38,6 +48,7 @@ func (ms *MemStorage) SetGauge(key string, value float64) {
 	ms.GaugeMetrics[key] = value
 }
 
+// GetGauge returns the value of a gauge metric
 func (ms *MemStorage) GetGauge(key string) (float64, bool) {
 	ms.mu.Lock()
 	defer ms.mu.Unlock()
@@ -46,6 +57,7 @@ func (ms *MemStorage) GetGauge(key string) (float64, bool) {
 	return value, exists
 }
 
+// SetCounter sets the value of a counter metric
 func (ms *MemStorage) SetCounter(key string, value int64) {
 	ms.mu.Lock()
 	defer ms.mu.Unlock()
@@ -53,6 +65,7 @@ func (ms *MemStorage) SetCounter(key string, value int64) {
 	ms.CounterMetrics[key] += value
 }
 
+// GetCounter returns the value of a counter metric
 func (ms *MemStorage) GetCounter(key string) (int64, bool) {
 	ms.mu.Lock()
 	defer ms.mu.Unlock()

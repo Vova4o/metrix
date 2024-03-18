@@ -31,3 +31,4 @@ cmd/agent/agentlog.txt
 cmd/server/serverlog.txt
 agentlog.txt
 serverlog.txt
+test.sh

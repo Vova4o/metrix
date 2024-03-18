@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
 
 	"Vova4o/metrix/internal/app"
@@ -27,7 +30,11 @@ func main() {
 	// Set the output destination of the standard logger
 	log.SetOutput(LogfileAgent)
 
-	err = app.NewAgent()
+	fmt.Println("Went to main")
+
+	ctx := context.Background()
+	client := resty.New()
+	err = app.NewAgent(ctx, client)
 	if err != nil {
 		log.Fatalf("Failed to start the agent: %v", err)
 	}

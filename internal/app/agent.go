@@ -1,14 +1,24 @@
 package app
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
 
 	"Vova4o/metrix/internal/clientmetrics"
 )
 
-func NewAgent() error {
-	client := resty.New()
+// NewAgent creates and starts a new Metrics agent.
+// It never returns, running a continuous loop to collect and send metrics.
+//
+// Returns:
+//
+//	error: an error occurred while creating or running the agent.
+func NewAgent(ctx context.Context, client *resty.Client) error {
+
+	fmt.Println("Hit the NewAgent function")
 
 	// Add a middleware logger
 	client.OnBeforeRequest(func(client *resty.Client, request *resty.Request) error {
@@ -28,19 +38,27 @@ func NewAgent() error {
 		return nil
 	})
 
-	m := clientmetrics.NewMetrics(client) // Create new Metrics
+	metrics := clientmetrics.NewMetrics(client) // Create new Metrics
 
-	// Start the main loop
+	runMetricsLoop(ctx, metrics)
+	
+	return nil
+}
+
+func runMetricsLoop(ctx context.Context, metrics *clientmetrics.Metrics) {
+	fmt.Println("Hit the runMetricsLoop function")
 	for {
-		// Wait for the next tick
 		select {
-		// When the pollTicker ticks, we collect the metrics
-		case <-m.PollTicker.C:
-			m.PollMetrics()
-		// When the reportTicker ticks, we send the metrics
-		case <-m.ReportTicker.C:
-			m.ReportMetrics(m.BaseURL)
+		case <-ctx.Done():
+			return
+		case <-metrics.PollTicker.C:
+			if err := metrics.PollMetrics(); err != nil {
+				logrus.WithError(err).Error("Failed to poll metrics")
+			}
+		case <-metrics.ReportTicker.C:
+			if err := metrics.ReportMetrics(metrics.BaseURL); err != nil {
+				logrus.WithError(err).Error("Failed to report metrics")
+			}
 		}
 	}
-
 }

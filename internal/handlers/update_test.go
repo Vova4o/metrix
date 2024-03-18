@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
@@ -13,65 +14,6 @@ import (
 )
 
 func Test_handleUpdate(t *testing.T) {
-	// define an empty storage
-	storage := storage.NewMemStorage()
-
-	// Create a request to pass to our handler
-	handler := HandleUpdateText(storage)
-
-	// Create a new HTTP request
-	req, err := http.NewRequest("POST", "", nil)
-	// Check if there was an error creating the request
-	assert.NoError(t, err)
-
-	// Create a router context with the URL parameters
-	rctx := chi.NewRouteContext()
-	// Add the URL parameters
-	rctx.URLParams.Add("metricType", "gauge")
-	rctx.URLParams.Add("metricName", "test")
-	rctx.URLParams.Add("metricValue", "10.0")
-	// Add the router context to the request
-	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
-
-	// Create a ResponseRecorder to record the response
-	rr := httptest.NewRecorder()
-	// Call ServeHTTP method directly and pass in our Request and ResponseRecorder
-	handler.ServeHTTP(rr, req)
-
-	// Check the status code
-	assert.Equal(t, http.StatusOK, rr.Code)
-}
-
-func Test_handleUpdate_counter(t *testing.T) {
-	storage := storage.NewMemStorage()
-
-	// Create a request to pass to our handler
-	handler := HandleUpdateText(storage)
-
-	// Create a new HTTP request
-	req, err := http.NewRequest("POST", "", nil)
-	// Check if there was an error creating the request
-	assert.NoError(t, err)
-
-	// Create a router context with the URL parameters
-	rctx := chi.NewRouteContext()
-	// Add the URL parameters
-	rctx.URLParams.Add("metricType", "counter")
-	rctx.URLParams.Add("metricName", "test")
-	rctx.URLParams.Add("metricValue", "10")
-	// Add the router context to the request
-	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
-
-	// Create a ResponseRecorder to record the response
-	rr := httptest.NewRecorder()
-	// Call ServeHTTP method directly and pass in our Request and ResponseRecorder
-	handler.ServeHTTP(rr, req)
-
-	// Check the status code
-	assert.Equal(t, http.StatusOK, rr.Code)
-}
-
-func Test_handleUpdate_error(t *testing.T) {
 	tests := []struct {
 		name        string
 		metricType  string
@@ -79,13 +21,25 @@ func Test_handleUpdate_error(t *testing.T) {
 		wantStatus  int
 	}{
 		{
-			name:        "Invalid metric value",
+			name:        "Gauge metric",
+			metricType:  "gauge",
+			metricValue: "10.0",
+			wantStatus:  http.StatusOK,
+		},
+		{
+			name:        "Counter metric",
+			metricType:  "counter",
+			metricValue: "10",
+			wantStatus:  http.StatusOK,
+		},
+		{
+			name:        "Invalid metric value for counter",
 			metricType:  "counter",
 			metricValue: "invalid",
 			wantStatus:  http.StatusBadRequest,
 		},
 		{
-			name:        "Invalid metric value",
+			name:        "Invalid metric value for gauge",
 			metricType:  "gauge",
 			metricValue: "invalid",
 			wantStatus:  http.StatusBadRequest,
@@ -126,6 +80,63 @@ func Test_handleUpdate_error(t *testing.T) {
 
 			// Check the status code
 			assert.Equal(t, tt.wantStatus, rr.Code)
+		})
+	}
+}
+func TestHandleUpdateJSON(t *testing.T) {
+	tests := []struct {
+		name           string
+		body           string
+		expectedStatus int
+	}{
+		{
+			name:           "Valid gauge metric",
+			body:           `{"type":"gauge","name":"test","value":"10.0"}`,
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "Valid counter metric",
+			body:           `{"type":"counter","name":"test","value":"10"}`,
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "Invalid metric type",
+			body:           `{"type":"invalid","name":"test","value":"10"}`,
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:           "Invalid gauge value",
+			body:           `{"type":"gauge","name":"test","value":"invalid"}`,
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:           "Invalid counter value",
+			body:           `{"type":"counter","name":"test","value":"invalid"}`,
+			expectedStatus: http.StatusBadRequest,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			storage := storage.NewMemStorage()
+
+			// Create a request to pass to our handler
+			req, err := http.NewRequest("POST", "", strings.NewReader(tt.body))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Set("Content-Type", "application/json")
+
+			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response
+			rr := httptest.NewRecorder()
+			handler := HandleUpdateJSON(storage)
+
+			// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
+			// directly and pass in our Request and ResponseRecorder
+			handler.ServeHTTP(rr, req)
+
+			// Check the status code is what we expect
+			assert.Equal(t, tt.expectedStatus, rr.Code)
 		})
 	}
 }

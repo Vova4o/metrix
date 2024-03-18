@@ -64,6 +64,8 @@ func TestReportMetrics(t *testing.T) {
 		gaugeMetrics   map[string]float64
 		counterMetrics map[string]int64
 		client         *resty.Client
+		senderText         MetricSender
+		senderJSON         MetricSender
 		wantErr        bool
 	}{
 		{
@@ -71,6 +73,8 @@ func TestReportMetrics(t *testing.T) {
 			gaugeMetrics:   nil,
 			counterMetrics: map[string]int64{"test": 1},
 			client:         &resty.Client{},
+			senderText:         &TextMetricSender{},
+			senderJSON:    &JSONMetricSender{},
 			wantErr:        true,
 		},
 		{
@@ -78,6 +82,8 @@ func TestReportMetrics(t *testing.T) {
 			gaugeMetrics:   map[string]float64{"test": 1.0},
 			counterMetrics: nil,
 			client:         &resty.Client{},
+			senderText:         &TextMetricSender{},
+			senderJSON:    &JSONMetricSender{},
 			wantErr:        true,
 		},
 		{
@@ -85,6 +91,8 @@ func TestReportMetrics(t *testing.T) {
 			gaugeMetrics:   map[string]float64{"test": 1.0},
 			counterMetrics: map[string]int64{"test": 1},
 			client:         nil,
+			senderText:         &TextMetricSender{},
+			senderJSON:    &JSONMetricSender{},
 			wantErr:        true,
 		},
 		{
@@ -92,7 +100,27 @@ func TestReportMetrics(t *testing.T) {
 			gaugeMetrics:   map[string]float64{"test": 1.0},
 			counterMetrics: map[string]int64{"test": 1},
 			client:         resty.New(),
+			senderText:         &TextMetricSender{},
+			senderJSON:    &JSONMetricSender{},
 			wantErr:        false,
+		},
+		{
+			name:           "Nil TextSender",
+			gaugeMetrics:   map[string]float64{"test": 1.0},
+			counterMetrics: map[string]int64{"test": 1},
+			client:         resty.New(),
+			senderText:         nil,
+			senderJSON:    &JSONMetricSender{},
+			wantErr:        true,
+		},
+		{
+			name:           "Nil JSONSender",
+			gaugeMetrics:   map[string]float64{"test": 1.0},
+			counterMetrics: map[string]int64{"test": 1},
+			client:         resty.New(),
+			senderText:         &TextMetricSender{},
+			senderJSON:    nil,
+			wantErr:        true,
 		},
 	}
 
@@ -102,8 +130,8 @@ func TestReportMetrics(t *testing.T) {
 				GaugeMetrics:   tt.gaugeMetrics,
 				CounterMetrics: tt.counterMetrics,
 				Client:         tt.client,
-				TextSender:     &TextMetricSender{},
-				JSONSender:     &JSONMetricSender{},
+				TextSender:     tt.senderText,
+				JSONSender:     tt.senderJSON,
 			}
 
 			if err := ma.ReportMetrics("http://localhost"); (err != nil) != tt.wantErr {

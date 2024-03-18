@@ -1,37 +1,60 @@
-package app
+package app_test
 
-// import (
-// 	"Vova4o/metrix/internal/clientmetrics"
-// 	"testing"
+import (
+	"context"
+	"testing"
+	"time"
 
-// 	"github.com/go-resty/resty/v2"
-// )
+	"github.com/go-resty/resty/v2"
+	"github.com/sirupsen/logrus/hooks/test"
+	"github.com/stretchr/testify/assert"
 
-// func TestHandleTick(t *testing.T) {
-// 	// Create a mock MetricsAgent
-// 	ma := &clientmetrics.MetricsAgent{
-// 		Metrics: &clientmetrics.Metrics{},
-// 		Client:  &resty.Client{},
-// 	}
+	"Vova4o/metrix/internal/app"
+)
 
-// 	tests := []struct {
-// 		name     string
-// 		tickType string
-// 	}{
-// 		{
-// 			name:     "Test Case 1 - Poll tick",
-// 			tickType: "poll",
-// 		},
-// 		{
-// 			name:     "Test Case 2 - Report tick",
-// 			tickType: "report",
-// 		},
-// 	}
+func TestNewAgent(t *testing.T) {
+	tests := []struct {
+		name     string
+		url      string
+		messages []string
+	}{
+		{
+			name:     "Test URL",
+			url:      "http://example.com",
+			messages: []string{"Sending request", "Received response"},
+		},
+		// Add more test cases as needed
+	}
 
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			HandleTick(ma, "http://example.com", tt.tickType)
-// 			// Add assertions here to check the behavior of HandleTick
-// 		})
-// 	}
-// }
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a new resty client
+			client := resty.New()
+
+			// Create a test hook for the logger
+			hook := test.NewGlobal()
+
+			// Create a context with a timeout
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			defer cancel()
+
+			// Run the NewAgent function with the context as the first argument
+			err := app.NewAgent(ctx, client)
+			if err != nil {
+				t.Fatalf("Failed to start the agent: %v", err)
+			}
+
+			// Make a request
+			_, _ = client.R().Get(tt.url)
+
+			// Check if the request was logged
+			assert.Equal(t, len(tt.messages), len(hook.Entries))
+			for i, message := range tt.messages {
+				assert.Equal(t, message, hook.Entries[i].Message)
+				if i == 0 { // Only the first log entry should have the URL
+					assert.Equal(t, tt.url, hook.Entries[i].Data["url"])
+				}
+			}
+		})
+	}
+}

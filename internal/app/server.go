@@ -19,6 +19,8 @@ func NewServer() error {
 	// Create a new router
 	mux := chi.NewRouter()
 
+	tempFile := "metrix.page.tmpl"
+
 	// Create a new MemStorage
 	memStorage := storage.NewMemStorage()
 
@@ -27,14 +29,16 @@ func NewServer() error {
 	mux.Use(middleware.Recoverer)
 
 	// Add the handlers to the router
+
 	mux.Post("/update/{metricType}/{metricName}/{metricValue}", handlers.HandleUpdateText(memStorage))
 	mux.Post("/update/value/", handlers.HandleUpdateJSON(memStorage))
 
-	mux.Get("/", handlers.ShowMetrics(memStorage))
+	mux.Get("/", handlers.ShowMetrics(memStorage, tempFile))
 
 	mux.Get("/value/{metricType}/{metricName}", handlers.MetricValue(memStorage))
 
 	fmt.Printf("Starting server on %s\n", allflags.GetServerAddress())
+
 	// Start the server
 	return http.ListenAndServe(allflags.GetServerAddress(), mux)
 }
