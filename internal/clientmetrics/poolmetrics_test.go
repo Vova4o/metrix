@@ -41,7 +41,10 @@ func TestMetrics_PollMetrics(t *testing.T) {
 				GaugeMetrics:   tt.fields.GaugeMetrics,
 				CounterMetrics: tt.fields.CounterMetrics,
 			}
-			m.PollMetrics()
+			err := m.PollMetrics()
+			if err != nil {
+				t.Errorf("PollMetrics() error = %v, want nil", err)
+			}
 			randomValue, ok := m.GaugeMetrics["RandomValue"]
 			if !ok {
 				t.Errorf("RandomValue is missing")

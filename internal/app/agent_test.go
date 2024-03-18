@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
+	"Vova4o/metrix/internal/app"
+
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
-
-	"Vova4o/metrix/internal/app"
 )
 
 func TestNewAgent(t *testing.T) {

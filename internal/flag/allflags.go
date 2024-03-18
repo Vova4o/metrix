@@ -1,6 +1,7 @@
 package allflags
 
 import (
+	"log"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -22,18 +23,30 @@ func init() {
 	pflag.Parse()
 
 	// Bind the flags to viper
-	viper.BindPFlag("ServerAddress", pflag.Lookup("ServerAddress"))
-	viper.BindPFlag("ReportInterval", pflag.Lookup("ReportInterval"))
-	viper.BindPFlag("PollInterval", pflag.Lookup("PollInterval"))
+	bindFlagToViper("ServerAddress")
+	bindFlagToViper("ReportInterval")
+	bindFlagToViper("PollInterval")
 
 	// Set the environment variable names
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	viper.BindEnv("ServerAddress", "ADDRESS")
-	viper.BindEnv("ReportInterval", "REPORT_INTERVAL")
-	viper.BindEnv("PollInterval", "POLL_INTERVAL")
+	bindEnvToViper("ServerAddress", "ADDRESS")
+	bindEnvToViper("ReportInterval", "REPORT_INTERVAL")
+	bindEnvToViper("PollInterval", "POLL_INTERVAL")
 
 	// Read the environment variables
 	viper.AutomaticEnv()
+}
+
+func bindFlagToViper(flagName string) {
+	if err := viper.BindPFlag(flagName, pflag.Lookup(flagName)); err != nil {
+		log.Println(err)
+	}
+}
+
+func bindEnvToViper(viperKey, envKey string) {
+	if err := viper.BindEnv(viperKey, envKey); err != nil {
+		log.Println(err)
+	}
 }
 
 func GetServerAddress() string {
