@@ -9,16 +9,15 @@ import (
 )
 
 func main() {
-	var err error
 	// Open a file for logging
-	config.LogfileServer, err = logger.Logger(config.ServerLogFile)
+	logger, err := logger.NewFileLogger(config.ServerLogFile)
 	if err != nil {
-		log.Fatalf("Failed to open log file: %v", err)
+		log.Fatalf("Failed to create logger: %v", err)
 	}
-	defer config.LogfileServer.Close()
-
-	log.SetOutput(config.LogfileServer)
-
+	defer logger.CloseLogger()
+	
+	logger.SetOutput()
+	
 	err = app.NewServer()
 	if err != nil {
 		log.Fatalf("Failed to start the server: %v", err)

@@ -11,40 +11,54 @@ import (
 	"Vova4o/metrix/internal/storage"
 )
 
-// HandleUpdate is an HTTP handler that updates a metric
+type MetricUpdate struct {
+	Type  string `json:"type"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
+func (g GaugeMetricType) ParseValue(value string) (interface{}, error) {
+	return strconv.ParseFloat(value, 64)
+}
+
+func (g GaugeMetricType) Store(storage storage.StorageInterface, name string, value interface{}) {
+	storage.SetGauge(name, value.(float64))
+}
+
+func (c CounterMetricType) ParseValue(value string) (interface{}, error) {
+	return strconv.ParseInt(value, 10, 64)
+}
+
+func (c CounterMetricType) Store(storage storage.StorageInterface, name string, value interface{}) {
+	storage.SetCounter(name, value.(int64))
+}
+
 func HandleUpdateText(storage storage.StorageInterface) http.HandlerFunc {
-	// Return the actual handler function
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Get the metric type, name and value from the URL parameters
 		metricType := chi.URLParam(r, "metricType")
 		metricName := chi.URLParam(r, "metricName")
 		metricValue := chi.URLParam(r, "metricValue")
 
-		// Check if the metric type is valid
+		var mt MetricType
 		switch metricType {
 		case "gauge":
-			// Parse the metric value as a float
-			value, err := strconv.ParseFloat(metricValue, 64)
-			if err != nil {
-				logAndRespondError(w, err, "Invalid metric value", http.StatusBadRequest)
-				return
-			}
-			// store the value in the storage
-			storage.SetGauge(metricName, value)
+			mt = GaugeMetricType{}
 		case "counter":
-			// Parse the metric value as a float
-			value, err := strconv.ParseInt(metricValue, 10, 64)
-			if err != nil {
-				logAndRespondError(w, err, "Invalid metric value", http.StatusBadRequest)
-				return
-			}
-			// store the value in the storage
-			storage.SetCounter(metricName, value)
+			mt = CounterMetricType{}
 		default:
 			log.Printf("Invalid metric type: %s", metricType)
 			http.Error(w, "Invalid metric type", http.StatusBadRequest)
+			return
 		}
-		// Set the status code to 200 OK
+
+		value, err := mt.ParseValue(metricValue)
+		if err != nil {
+			logAndRespondError(w, err, "Invalid metric value", http.StatusBadRequest)
+			return
+		}
+
+		mt.Store(storage, metricName, value)
+
 		w.WriteHeader(http.StatusOK)
 	}
 }
@@ -54,39 +68,35 @@ func logAndRespondError(w http.ResponseWriter, err error, message string, code i
 	http.Error(w, message, code)
 }
 
-type Metric struct {
-	Type  string `json:"type"`
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
 func HandleUpdateJSON(storage storage.StorageInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var metric Metric
-		decoder := json.NewDecoder(r.Body)
-		if err := decoder.Decode(&metric); err != nil {
-			logAndRespondError(w, err, "Failed to decode JSON", http.StatusBadRequest)
+		var update MetricUpdate
+		err := json.NewDecoder(r.Body).Decode(&update)
+		if err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
 			return
 		}
-		switch metric.Type {
+
+		var mt MetricType
+		switch update.Type {
 		case "gauge":
-			value, err := strconv.ParseFloat(metric.Value, 64)
-			if err != nil {
-				logAndRespondError(w, err, "Invalid metric value", http.StatusBadRequest)
-				return
-			}
-			storage.SetGauge(metric.Name, value)
+			mt = GaugeMetricType{}
 		case "counter":
-			value, err := strconv.ParseInt(metric.Value, 10, 64)
-			if err != nil {
-				logAndRespondError(w, err, "Invalid metric value", http.StatusBadRequest)
-				return
-			}
-			storage.SetCounter(metric.Name, value)
+			mt = CounterMetricType{}
 		default:
-			log.Printf("Invalid metric type: %s", metric.Type)
+			log.Printf("Invalid metric type: %s", update.Type)
 			http.Error(w, "Invalid metric type", http.StatusBadRequest)
+			return
 		}
+
+		value, err := mt.ParseValue(update.Value)
+		if err != nil {
+			http.Error(w, "Invalid metric value", http.StatusBadRequest)
+			return
+		}
+
+		mt.Store(storage, update.Name, value)
+
 		w.WriteHeader(http.StatusOK)
 	}
 }

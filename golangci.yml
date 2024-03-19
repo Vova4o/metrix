@@ -1,29 +1,30 @@
-# Options for analysis running.
-run:
-  # See the dedicated "run" documentation section.
-  option: value
-# output configuration options
-output:
-  # See the dedicated "output" documentation section.
-  option: value
-# All available settings of specific linters.
-linters-settings:
-  # See the dedicated "linters-settings" documentation section.
-  option: value
-linters:
-  # See the dedicated "linters" documentation section.
-  option: value
-issues:
-  # See the dedicated "issues" documentation section.
-  option: value
-severity:
-  # See the dedicated "severity" documentation section.
-  option: value
+# # Options for analysis running.
+# run:
+#   # See the dedicated "run" documentation section.
+#   option: value
+# # output configuration options
+# output:
+#   # See the dedicated "output" documentation section.
+#   option: value
+# # All available settings of specific linters.
+# linters-settings:
+#   # See the dedicated "linters-settings" documentation section.
+#   option: value
+# linters:
+#   # See the dedicated "linters" documentation section.
+#   option: value
+# issues:
+#   # See the dedicated "issues" documentation section.
+#   option: value
+# severity:
+#   # See the dedicated "severity" documentation section.
+#   option: value
   
 linters:
   # Disable all linters.
   # Default: false
-  # disable-all: true
+  # enable-all: true
+  disable-all: true
   # Enable specific linter
   # https://golangci-lint.run/usage/linters/#enabled-by-default
   enable:
@@ -144,20 +145,20 @@ linters:
   # Enable presets.
   # https://golangci-lint.run/usage/linters
   # Default: []
-  presets:
-    - bugs
-    - comment
-    - complexity
-    - error
-    - format
-    - import
-    - metalinter
-    - module
-    - performance
-    - sql
-    - style
-    - test
-    - unused
-  # Enable only fast linters from enabled linters set (first run won't be fast)
+  # presets:
+  #   - bugs
+  #   - comment
+  #   - complexity
+  #   - error
+  #   - format
+  #   - import
+  #   - metalinter
+  #   - module
+  #   - performance
+  #   - sql
+  #   - style
+  #   - test
+  #   - unused
+  # # Enable only fast linters from enabled linters set (first run won't be fast)
   # Default: false
-  fast: true
+  # fast: true

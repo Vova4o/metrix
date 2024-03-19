@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"Vova4o/metrix/internal/clientmetrics"
+	"Vova4o/metrix/internal/logger"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
@@ -16,12 +17,12 @@ import (
 // Returns:
 //
 //	error: an error occurred while creating or running the agent.
-func NewAgent(ctx context.Context, client *resty.Client) error {
+func NewAgent(ctx context.Context, client *resty.Client, logger *logger.FileLogger) error {
 	fmt.Println("Hit the NewAgent function")
 
 	// Add a middleware logger
 	client.OnBeforeRequest(func(client *resty.Client, request *resty.Request) error {
-		logrus.WithFields(logrus.Fields{
+		logger.Logger.WithFields(logrus.Fields{
 			"url": request.URL,
 		}).Info("Sending request")
 
@@ -29,7 +30,7 @@ func NewAgent(ctx context.Context, client *resty.Client) error {
 	})
 
 	client.OnAfterResponse(func(client *resty.Client, response *resty.Response) error {
-		logrus.WithFields(logrus.Fields{
+		logger.Logger.WithFields(logrus.Fields{
 			"status": response.StatusCode(),
 			"body":   response.String(),
 		}).Info("Received response")
@@ -39,12 +40,12 @@ func NewAgent(ctx context.Context, client *resty.Client) error {
 
 	metrics := clientmetrics.NewMetrics(client) // Create new Metrics
 
-	runMetricsLoop(ctx, metrics)
+	runMetricsLoop(ctx, metrics, logger)
 
 	return nil
 }
 
-func runMetricsLoop(ctx context.Context, metrics *clientmetrics.Metrics) {
+func runMetricsLoop(ctx context.Context, metrics *clientmetrics.Metrics, logger *logger.FileLogger) {
 	fmt.Println("Hit the runMetricsLoop function")
 	for {
 		select {
@@ -52,11 +53,11 @@ func runMetricsLoop(ctx context.Context, metrics *clientmetrics.Metrics) {
 			return
 		case <-metrics.PollTicker.C:
 			if err := metrics.PollMetrics(); err != nil {
-				logrus.WithError(err).Error("Failed to poll metrics")
+				logger.Logger.WithError(err).Error("Failed to poll metrics")
 			}
 		case <-metrics.ReportTicker.C:
 			if err := metrics.ReportMetrics(metrics.BaseURL); err != nil {
-				logrus.WithError(err).Error("Failed to report metrics")
+				logger.Logger.WithError(err).Error("Failed to report metrics")
 			}
 		}
 	}

@@ -12,25 +12,17 @@ import (
 // ShowMetrics is an HTTP handler that shows all the metrics
 func ShowMetrics(storage storage.StorageInterface, tempFile string) http.HandlerFunc {
 	// Parse the template file
-	tmpl, err := template.ParseFiles(filepath.Join("../../templates", tempFile))
-	if err != nil {
-		log.Printf("Error parsing template: %v", err)
-		return func(w http.ResponseWriter, r *http.Request) {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		}
+	tmpl, errFunc := ParseTemplate(tempFile)
+	if errFunc != nil {
+		return errFunc
 	}
 
 	// Return the actual handler function
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Get all the gauge metrics
-		gaugeMetrics := storage.GetAllGauges()
-		// Get all the counter metrics
-		counterMetrics := storage.GetAllCounters()
-
 		// Create a map of maps to hold the metrics
 		data := map[string]interface{}{
-			"GaugeMetrics":   gaugeMetrics,
-			"CounterMetrics": counterMetrics,
+			"GaugeMetrics":   GaugeMetricType{}.GetAll(storage),
+			"CounterMetrics": CounterMetricType{}.GetAll(storage),
 		}
 
 		// Execute the template with the data
@@ -40,4 +32,34 @@ func ShowMetrics(storage storage.StorageInterface, tempFile string) http.Handler
 			return
 		}
 	}
+}
+
+func (g GaugeMetricType) GetAll(storage storage.StorageInterface) map[string]interface{} {
+	gauges := storage.GetAllGauges()
+	result := make(map[string]interface{}, len(gauges))
+	for k, v := range gauges {
+		result[k] = v
+	}
+	return result
+}
+
+func (c CounterMetricType) GetAll(storage storage.StorageInterface) map[string]interface{} {
+	counters := storage.GetAllCounters()
+	result := make(map[string]interface{}, len(counters))
+	for k, v := range counters {
+		result[k] = v
+	}
+	return result
+}
+
+// ParseTemplate parses the template file and returns the parsed template
+func ParseTemplate(tempFile string) (*template.Template, func(w http.ResponseWriter, r *http.Request)) {
+	tmpl, err := template.ParseFiles(filepath.Join("../../templates", tempFile))
+	if err != nil {
+		log.Printf("Error parsing template: %v", err)
+		return nil, func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		}
+	}
+	return tmpl, nil
 }

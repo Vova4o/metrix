@@ -11,42 +11,47 @@ import (
 	"Vova4o/metrix/internal/storage"
 )
 
-// MetricValue is an HTTP handler that returns the value of a metric
+func (g GaugeMetricType) GetValue(storage storage.StorageInterface, name string) (interface{}, bool) {
+	return storage.GetGauge(name)
+}
+
+func (g GaugeMetricType) FormatValue(value interface{}) string {
+	return strconv.FormatFloat(value.(float64), 'f', -1, 64)
+}
+
+func (c CounterMetricType) GetValue(storage storage.StorageInterface, name string) (interface{}, bool) {
+	return storage.GetCounter(name)
+}
+
+func (c CounterMetricType) FormatValue(value interface{}) string {
+	return fmt.Sprintf("%d", int(value.(int64)))
+}
+
 func MetricValue(storage storage.StorageInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Get the metric type and name from the URL parameters
 		metricType := chi.URLParam(r, "metricType")
 		metricName := chi.URLParam(r, "metricName")
 
-		// Check if the metric type is valid
+		var mt MetricType
 		switch metricType {
-		// If the metric type is gauge
 		case "gauge":
-			// if value exists, set it to the value of the metric
-			value, exists := storage.GetGauge(metricName)
-			if !exists {
-				http.Error(w, "Metric not found", http.StatusNotFound)
-				return
-			}
-			w.Header().Set("Content-Type", "text/plain")
-			w.WriteHeader(http.StatusOK)
-			// Format the float with no trailing zeros
-			formattedValue := strconv.FormatFloat(value, 'f', -1, 64)
-			fmt.Fprint(w, formattedValue)
-			// If the metric type is counter
+			mt = GaugeMetricType{}
 		case "counter":
-			// if value exists, set it to the value of the metric
-			value, exists := storage.GetCounter(metricName)
-			if !exists {
-				http.Error(w, "Metric not found", http.StatusNotFound)
-				return
-			}
-			w.Header().Set("Content-Type", "text/plain")
-			w.WriteHeader(http.StatusOK)
-			fmt.Fprintf(w, "%d", int(value))
+			mt = CounterMetricType{}
 		default:
 			log.Printf("Invalid metric type: %s", metricType)
 			http.Error(w, "Invalid metric type", http.StatusBadRequest)
+			return
 		}
+
+		value, exists := mt.GetValue(storage, metricName)
+		if !exists {
+			http.Error(w, "Metric not found", http.StatusNotFound)
+			return
+		}
+
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, mt.FormatValue(value))
 	}
 }
