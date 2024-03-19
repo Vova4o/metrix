@@ -88,8 +88,16 @@ func MetricValueJSON(storage storage.StorageInterface) http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"value": mt.FormatValue(value),
-		})
+		if metrics.MType == "gauge" {
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"value": value,
+			})
+			return
+		} 
+		if metrics.MType == "couter" {
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"delta": value, 
+			})
+		}
 	}
 }
