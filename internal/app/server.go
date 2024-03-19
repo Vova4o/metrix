@@ -62,6 +62,7 @@ func NewServer() error {
 	mux.Get("/", handlers.ShowMetrics(memStorage, tempFile))
 
 	mux.Get("/value/{metricType}/{metricName}", handlers.MetricValue(memStorage))
+	mux.Get("/value/", handlers.MetricValueJSON(memStorage))
 
 	fmt.Printf("Starting server on %s\n", allflags.GetServerAddress())
 
