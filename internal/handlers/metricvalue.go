@@ -94,7 +94,7 @@ func MetricValueJSON(storage storage.StorageInterface) http.HandlerFunc {
 			})
 			return
 		} 
-		if metrics.MType == "couter" {
+		if metrics.MType == "counter" {
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"delta": value, 
 			})
