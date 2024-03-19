@@ -44,12 +44,18 @@ func NewServer() error {
 	// Create a new MemStorage
 	memStorage := storage.NewMemStorage()
 
-	mux.Use(RequestLogger(&logger.FileLogger{LogFile: config.LogfileServer}))
+	// Create a new FileLogger
+	log, err := logger.NewFileLogger(config.ServerLogFile)
+	if err != nil {
+		return err
+	}
+	defer log.CloseLogger()
+
+	mux.Use(RequestLogger(log))
 	mux.Use(middleware.Logger)
 	mux.Use(middleware.Recoverer)
 
 	// Add the handlers to the router
-
 	mux.Post("/update/{metricType}/{metricName}/{metricValue}", handlers.HandleUpdateText(memStorage))
 	mux.Post("/update/value/", handlers.HandleUpdateJSON(memStorage))
 
