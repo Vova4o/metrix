@@ -32,3 +32,4 @@ cmd/server/serverlog.txt
 agentlog.txt
 serverlog.txt
 test.sh
+internal/app/test.log

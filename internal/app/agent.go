@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 
 	"Vova4o/metrix/internal/clientmetrics"
 	"Vova4o/metrix/internal/logger"
@@ -18,8 +17,6 @@ import (
 //
 //	error: an error occurred while creating or running the agent.
 func NewAgent(ctx context.Context, client *resty.Client, logger *logger.FileLogger) error {
-	fmt.Println("Hit the NewAgent function")
-
 	// Add a middleware logger
 	client.OnBeforeRequest(func(client *resty.Client, request *resty.Request) error {
 		logger.Logger.WithFields(logrus.Fields{
@@ -46,7 +43,6 @@ func NewAgent(ctx context.Context, client *resty.Client, logger *logger.FileLogg
 }
 
 func runMetricsLoop(ctx context.Context, metrics *clientmetrics.Metrics, logger *logger.FileLogger) {
-	fmt.Println("Hit the runMetricsLoop function")
 	for {
 		select {
 		case <-ctx.Done():

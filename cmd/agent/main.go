@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/go-resty/resty/v2"
@@ -21,8 +20,6 @@ func main() {
 	defer logger.CloseLogger()
 
 	logger.SetOutput()
-
-	fmt.Println("Went to main")
 
 	ctx := context.Background()
 	client := resty.New()
