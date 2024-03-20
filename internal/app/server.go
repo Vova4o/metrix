@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
@@ -20,11 +21,16 @@ func RequestLogger(logger *logger.FileLogger) func(next http.Handler) http.Handl
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
 
+			start := time.Now()
+
 			defer func() {
+				duration := time.Since(start)
 				logger.Logger.WithFields(logrus.Fields{
-					"status": ww.Status(),
-					"method": r.Method,
-					"path":   r.URL.Path,
+					"status":   ww.Status(),
+					"method":   r.Method,
+					"path":     r.URL.Path,
+					"duration": duration.String(),
+					"size":     ww.BytesWritten(),
 				}).Info("Handled request")
 			}()
 

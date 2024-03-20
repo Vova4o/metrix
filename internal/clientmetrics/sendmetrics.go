@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -47,13 +48,40 @@ func (t *TextMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 	return nil
 }
 
+type MetricsJSON struct {
+	ID    string   `json:"id"`              // имя метрики
+	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
+	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
+	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+}
+
 type JSONMetricSender struct{}
 
 func (j *JSONMetricSender) SendMetric(client *resty.Client, metricType, metricName, metricValue, baseURL string) error {
-	metric := Metric{
-		Type:  metricType,
-		Name:  metricName,
-		Value: metricValue,
+	var delta *int64
+	var value *float64
+
+	if metricType == "counter" {
+		val, err := strconv.ParseInt(metricValue, 10, 64)
+		if err != nil {
+			return fmt.Errorf("failed to parse counter value: %v", err)
+		}
+		delta = &val
+	} else if metricType == "gauge" {
+		val, err := strconv.ParseFloat(metricValue, 64)
+		if err != nil {
+			return fmt.Errorf("failed to parse gauge value: %v", err)
+		}
+		value = &val
+	} else {
+		return fmt.Errorf("invalid metric type: %s", metricType)
+	}
+
+	metric := MetricsJSON{
+		ID:    metricName,
+		MType: metricType,
+		Delta: delta,
+		Value: value,
 	}
 
 	if client == nil {
@@ -64,7 +92,7 @@ func (j *JSONMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 		baseURL = "http://" + baseURL
 	}
 
-	jsonDate, err := json.Marshal(metric)
+	jsonDate, err := json.MarshalIndent(metric, "", "  ")
 	if err != nil {
 		log.Printf("failed to marshal metric: %v", err)
 		return fmt.Errorf("failed to marshal metric: %v", err)
