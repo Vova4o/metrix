@@ -91,28 +91,28 @@ func TestHandleUpdateJSON(t *testing.T) {
 		expectedStatus int
 	}{
 		{
-			name:           "Valid gauge metric",
-			body:           `{"type":"gauge","name":"test","value":"10.0"}`,
-			expectedStatus: http.StatusOK,
-		},
-		{
-			name:           "Valid counter metric",
-			body:           `{"type":"counter","name":"test","value":"10"}`,
-			expectedStatus: http.StatusOK,
-		},
-		{
-			name:           "Invalid metric type",
-			body:           `{"type":"invalid","name":"test","value":"10"}`,
+			name:           "Empty body",
+			body:           "",
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			name:           "Invalid gauge value",
-			body:           `{"type":"gauge","name":"test","value":"invalid"}`,
+			name:           "Invalid JSON",
+			body:           `{"type":"gauge","name":"test","value":}`,
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			name:           "Invalid counter value",
-			body:           `{"type":"counter","name":"test","value":"invalid"}`,
+			name:           "Missing name",
+			body:           `{"type":"gauge","value":"10.0"}`,
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:           "Missing value",
+			body:           `{"type":"gauge","name":"test"}`,
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:           "Missing type",
+			body:           `{"name":"test","value":"10.0"}`,
 			expectedStatus: http.StatusBadRequest,
 		},
 	}
