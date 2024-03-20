@@ -97,6 +97,24 @@ func HandleUpdateJSON(storage storage.StorageInterface) http.HandlerFunc {
 
 		mt.Store(storage, update.Name, value)
 
+		metrixName := "counter"
+		// Get the latest value from the storage
+		latestValue, ok := mt.GetValue(storage, metrixName)
+		if !ok {
+			http.Error(w, "Failed to get latest value", http.StatusInternalServerError)
+			return
+		}
+
+		// Write the latest value to the response body
+		response := struct {
+			LatestValue interface{} `json:"delta"`
+		}{
+			LatestValue: latestValue,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+
 		w.WriteHeader(http.StatusOK)
 	}
 }
