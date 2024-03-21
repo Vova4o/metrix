@@ -92,7 +92,7 @@ func MetricValueJSON(storage storage.StorageInterface) http.HandlerFunc {
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"id":    metrics.ID,
 				"type":  metrics.MType,
-				"value": fmt.Sprintf("%.9f", value),
+				"value": value,
 			})
 			return
 		}
@@ -100,7 +100,7 @@ func MetricValueJSON(storage storage.StorageInterface) http.HandlerFunc {
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"id":    metrics.ID,
 				"type":  metrics.MType,
-				"delta": fmt.Sprintf("%.9f", value),
+				"delta": value,
 			})
 		}
 	}

@@ -98,7 +98,7 @@ func HandleUpdateJSON(storage storage.StorageInterface) http.HandlerFunc {
 		}
 
 		update := MetricUpdate{
-			Type:  metrics.MType,
+			// Type:  metrics.MType,
 			Name:  metrics.ID,
 			Value: value,
 		}
