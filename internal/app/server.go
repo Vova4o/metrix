@@ -58,7 +58,7 @@ func NewServer() error {
 	defer log.CloseLogger()
 
 	mux.Use(RequestLogger(log))
-	mux.Use(middleware.Logger)
+	// mux.Use(middleware.Logger)
 	mux.Use(middleware.Recoverer)
 
 	// Add the handlers to the router

@@ -34,24 +34,6 @@ func ShowMetrics(storage storage.StorageInterface, tempFile string) http.Handler
 	}
 }
 
-func (g GaugeMetricType) GetAll(storage storage.StorageInterface) map[string]interface{} {
-	gauges := storage.GetAllGauges()
-	result := make(map[string]interface{}, len(gauges))
-	for k, v := range gauges {
-		result[k] = v
-	}
-	return result
-}
-
-func (c CounterMetricType) GetAll(storage storage.StorageInterface) map[string]interface{} {
-	counters := storage.GetAllCounters()
-	result := make(map[string]interface{}, len(counters))
-	for k, v := range counters {
-		result[k] = v
-	}
-	return result
-}
-
 // ParseTemplate parses the template file and returns the parsed template
 func ParseTemplate(tempFile string) (*template.Template, func(w http.ResponseWriter, r *http.Request)) {
 	tmpl, err := template.ParseFiles(filepath.Join("../../templates", tempFile))

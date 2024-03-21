@@ -5,28 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 
 	"Vova4o/metrix/internal/storage"
 )
-
-func (g GaugeMetricType) GetValue(storage storage.StorageInterface, name string) (interface{}, bool) {
-	return storage.GetGauge(name)
-}
-
-func (g GaugeMetricType) FormatValue(value interface{}) string {
-	return strconv.FormatFloat(value.(float64), 'f', -1, 64)
-}
-
-func (c CounterMetricType) GetValue(storage storage.StorageInterface, name string) (interface{}, bool) {
-	return storage.GetCounter(name)
-}
-
-func (c CounterMetricType) FormatValue(value interface{}) string {
-	return fmt.Sprintf("%d", int(value.(int64)))
-}
 
 func MetricValue(storage storage.StorageInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

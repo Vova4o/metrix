@@ -75,7 +75,7 @@ func TestReportMetrics(t *testing.T) {
 		// Test cases updated to reflect the new error conditions
 		{
 			name:           "Valid Metrics",
-			gaugeMetrics:   map[string]float64{"test": 1.0},
+			gaugeMetrics:   map[string]float64{"test": 1.1234567890123456},
 			counterMetrics: map[string]int64{"Pool": 1},
 			client:         resty.New(),
 			senderText:     &TextMetricSender{},

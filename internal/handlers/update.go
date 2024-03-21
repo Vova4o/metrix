@@ -2,37 +2,13 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 
 	"Vova4o/metrix/internal/storage"
 )
-
-type MetricUpdate struct {
-	Type  string `json:"type"`
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
-func (g GaugeMetricType) ParseValue(value string) (interface{}, error) {
-	return strconv.ParseFloat(value, 64)
-}
-
-func (g GaugeMetricType) Store(storage storage.StorageInterface, name string, value interface{}) {
-	storage.SetGauge(name, value.(float64))
-}
-
-func (c CounterMetricType) ParseValue(value string) (interface{}, error) {
-	return strconv.ParseInt(value, 10, 64)
-}
-
-func (c CounterMetricType) Store(storage storage.StorageInterface, name string, value interface{}) {
-	storage.SetCounter(name, value.(int64))
-}
 
 func HandleUpdateText(storage storage.StorageInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -78,18 +54,26 @@ func HandleUpdateJSON(storage storage.StorageInterface) http.HandlerFunc {
 			return
 		}
 
+		if metrics.ID == "" {
+			http.Error(w, "Missing id", http.StatusBadRequest)
+			return
+		}
+
 		var mt MetricType
-		var value string
+		var value interface{}
 		switch metrics.MType {
 		case "gauge":
 			mt = GaugeMetricType{}
 			if metrics.Value != nil {
-				value = fmt.Sprintf("%f", *metrics.Value)
+				value = *metrics.Value
+			} else {
+				http.Error(w, "Value is required for gauge type", http.StatusBadRequest)
+				return
 			}
 		case "counter":
 			mt = CounterMetricType{}
 			if metrics.Delta != nil {
-				value = fmt.Sprintf("%d", *metrics.Delta)
+				value = *metrics.Delta
 			}
 		default:
 			log.Printf("Invalid metric type: %s", metrics.MType)
@@ -97,19 +81,7 @@ func HandleUpdateJSON(storage storage.StorageInterface) http.HandlerFunc {
 			return
 		}
 
-		update := MetricUpdate{
-			// Type:  metrics.MType,
-			Name:  metrics.ID,
-			Value: value,
-		}
-
-		parsedValue, err := mt.ParseValue(update.Value)
-		if err != nil {
-			http.Error(w, "Invalid metric value", http.StatusBadRequest)
-			return
-		}
-
-		mt.Store(storage, update.Name, parsedValue)
+		mt.Store(storage, metrics.ID, value)
 
 		// Get the latest value from the storage
 		latestValue, ok := mt.GetValue(storage, metrics.ID)

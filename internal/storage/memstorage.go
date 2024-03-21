@@ -74,6 +74,16 @@ func (ms *MemStorage) GetCounter(key string) (int64, bool) {
 	return value, exists
 }
 
+func (ms *MemStorage) GetAllMetrics() map[string]interface{} {
+	ms.mu.Lock()
+	defer ms.mu.Unlock()
+
+	return map[string]interface{}{
+		"Gauge":   ms.GaugeMetrics,
+		"Counter": ms.CounterMetrics,
+	}
+}
+
 // func (ms *MemStorage) Delete(key string) {
 // 	ms.mu.Lock()
 // 	defer ms.mu.Unlock()

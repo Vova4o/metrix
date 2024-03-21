@@ -98,42 +98,42 @@ func TestHandleUpdateJSON(t *testing.T) {
 		},
 		{
 			name:           "Invalid JSON",
-			body:           `{"type":"gauge","name":"test","value":}`,
+			body:           `{"type":"gauge","id":"test","value":"test","delta":"test"}`,
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			name:           "Missing name",
-			body:           `{"type":"gauge","value":"10.0"}`,
+			name:           "Missing id",
+			body:           `{"type":"gauge","value":10.123456789,"delta":0}`,
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name:           "Missing value",
-			body:           `{"type":"gauge","name":"test"}`,
+			body:           `{"type":"gauge","id":"test","delta":0}`,
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name:           "Missing type",
-			body:           `{"name":"test","value":"10.0"}`,
+			body:           `{"id":"test","value":10.0,"delta":0}`,
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name:           "Valid counter",
-			body:           `{"type":"counter","name":"test","delta":10}`,
+			body:           `{"type":"counter","id":"test","delta":10,"value":0}`,
 			expectedStatus: http.StatusOK,
 		},
 		{
 			name:           "Valid gauge",
-			body:           `{"type":"gauge","name":"test","value":10.0}`,
+			body:           `{"type":"gauge","id":"test","value":10.0,"delta":0}`,
 			expectedStatus: http.StatusOK,
 		},
 		{
 			name:           "Invalid counter value",
-			body:           `{"type":"counter","name":"test","delta":"invalid"}`,
+			body:           `{"type":"counter","id":"test","delta":"invalid","value":0}`,
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name:           "Invalid gauge value",
-			body:           `{"type":"gauge","name":"test","value":"invalid"}`,
+			body:           `{"type":"gauge","id":"test","value":"invalid","delta":0}`,
 			expectedStatus: http.StatusBadRequest,
 		},
 	}
@@ -141,6 +141,9 @@ func TestHandleUpdateJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			storage := storage.NewMemStorage()
+			if storage == nil {
+				t.Fatal("storage is nil")
+			}
 
 			// Create a request to pass to our handler
 			req, err := http.NewRequest("POST", "", strings.NewReader(tt.body))

@@ -21,6 +21,11 @@ func (t *TextMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 	if !strings.HasPrefix(baseURL, "http://") {
 		baseURL = "http://" + baseURL
 	}
+
+	if metricType == "gauge" && metricName == "RandomValue" {
+		fmt.Println("RandomValue: ", metricValue)
+	}
+
 	resp, err := client.R().
 		SetHeader("Content-Type", "text/plain").
 		Post(fmt.Sprintf("%s/update/%s/%s/%s", baseURL, metricType, metricName, metricValue))
@@ -88,7 +93,7 @@ func (j *JSONMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 		SetHeader("Content-Type", "application/json").
 		SetBody(jsonDate).
 		Post(fmt.Sprintf("%s/update/", baseURL))
-	// this is how it maigh look like
+		// this is how it maigh look like
 	if err != nil {
 		logger.Log.Logger.Errorf("failed to send %s metric %s: %v", metricType, metricName, err)
 		return fmt.Errorf("failed to send %s metric %s: %v", metricType, metricName, err)

@@ -8,4 +8,5 @@ type StorageInterface interface {
 	// Delete(key string)
 	GetAllGauges() map[string]float64
 	GetAllCounters() map[string]int64
+	GetAllMetrics() map[string]interface{}
 }

@@ -17,45 +17,44 @@ import (
 //
 //	error: an error occurred while creating or running the agent.
 func NewAgent(ctx context.Context, client *resty.Client) error {
-    // Add a middleware logger
-    client.OnBeforeRequest(func(client *resty.Client, request *resty.Request) error {
-        logger.Log.Logger.WithFields(logrus.Fields{
-            "url": request.URL,
-        }).Info("Sending request")
+	// Add a middleware logger
+	client.OnBeforeRequest(func(client *resty.Client, request *resty.Request) error {
+		logger.Log.Logger.WithFields(logrus.Fields{
+			"url": request.URL,
+		}).Info("Sending request")
 
-        return nil
-    })
+		return nil
+	})
 
-    client.OnAfterResponse(func(client *resty.Client, response *resty.Response) error {
-        logger.Log.Logger.WithFields(logrus.Fields{
-            "status": response.StatusCode(),
-            "body":   response.String(),
-        }).Info("Received response")
+	client.OnAfterResponse(func(client *resty.Client, response *resty.Response) error {
+		logger.Log.Logger.WithFields(logrus.Fields{
+			"status": response.StatusCode(),
+			"body":   response.String(),
+		}).Info("Received response")
 
-        return nil
-    })
+		return nil
+	})
 
-    metrics := clientmetrics.NewMetrics(client) // Create new Metrics
+	metrics := clientmetrics.NewMetrics(client) // Create new Metrics
 
-    runMetricsLoop(ctx, metrics)
+	runMetricsLoop(ctx, metrics)
 
-    return nil
+	return nil
 }
 
-
 func runMetricsLoop(ctx context.Context, metrics *clientmetrics.Metrics) {
-    for {
-        select {
-        case <-ctx.Done():
-            return
-        case <-metrics.PollTicker.C:
-            if err := metrics.PollMetrics(); err != nil {
-                logger.Log.Logger.WithError(err).Error("Failed to poll metrics")
-            }
-        case <-metrics.ReportTicker.C:
-            if err := metrics.ReportMetrics(metrics.BaseURL); err != nil {
-                logger.Log.Logger.WithError(err).Error("Failed to report metrics")
-            }
-        }
-    }
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-metrics.PollTicker.C:
+			if err := metrics.PollMetrics(); err != nil {
+				logger.Log.Logger.WithError(err).Error("Failed to poll metrics")
+			}
+		case <-metrics.ReportTicker.C:
+			if err := metrics.ReportMetrics(metrics.BaseURL); err != nil {
+				logger.Log.Logger.WithError(err).Error("Failed to report metrics")
+			}
+		}
+	}
 }
