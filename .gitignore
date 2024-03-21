@@ -33,3 +33,6 @@ agentlog.txt
 serverlog.txt
 test.sh
 internal/app/test.log
+internal/app/test.log
+internal/clientmetrics/test.log
+internal/clientmetrics/test.log

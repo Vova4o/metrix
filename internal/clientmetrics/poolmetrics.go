@@ -2,6 +2,7 @@ package clientmetrics
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"math/rand"
 	"runtime"
@@ -100,7 +101,7 @@ func (ma *Metrics) ReportMetrics(baseURL string) error {
 
 	for metricName, metricValue := range ma.GaugeMetrics {
 		wg.Add(1)
-		go reportMetric("gauge", metricName, strconv.FormatFloat(metricValue, 'f', -1, 64))
+		go reportMetric("gauge", metricName, fmt.Sprintf("%g", metricValue))
 	}
 
 	for metricName, metricValue := range ma.CounterMetrics {

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -115,6 +116,26 @@ func TestHandleUpdateJSON(t *testing.T) {
 			body:           `{"name":"test","value":"10.0"}`,
 			expectedStatus: http.StatusBadRequest,
 		},
+		{
+			name:           "Valid counter",
+			body:           `{"type":"counter","name":"test","delta":10}`,
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "Valid gauge",
+			body:           `{"type":"gauge","name":"test","value":10.0}`,
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "Invalid counter value",
+			body:           `{"type":"counter","name":"test","delta":"invalid"}`,
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:           "Invalid gauge value",
+			body:           `{"type":"gauge","name":"test","value":"invalid"}`,
+			expectedStatus: http.StatusBadRequest,
+		},
 	}
 
 	for _, tt := range tests {
@@ -138,6 +159,62 @@ func TestHandleUpdateJSON(t *testing.T) {
 
 			// Check the status code is what we expect
 			assert.Equal(t, tt.expectedStatus, rr.Code)
+		})
+	}
+}
+
+func TestHandleUpdateJSON_PoolCounter(t *testing.T) {
+	storage := storage.NewMemStorage()
+	handler := HandleUpdateJSON(storage)
+
+	tests := []struct {
+		name           string
+		body           string
+		expectedStatus int
+		expectedDelta  int64
+	}{
+		{
+			name:           "First PoolCounter",
+			body:           `{"type":"counter","id":"PoolCounter","delta":10}`,
+			expectedStatus: http.StatusOK,
+			expectedDelta:  10,
+		},
+		{
+			name:           "Second PoolCounter",
+			body:           `{"type":"counter","id":"PoolCounter","delta":20}`,
+			expectedStatus: http.StatusOK,
+			expectedDelta:  30,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a request to pass to our handler
+			req, err := http.NewRequest("POST", "", strings.NewReader(tt.body))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Set("Content-Type", "application/json")
+
+			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response
+			rr := httptest.NewRecorder()
+
+			// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
+			// directly and pass in our Request and ResponseRecorder
+			handler.ServeHTTP(rr, req)
+
+			// Check the status code is what we expect
+			assert.Equal(t, tt.expectedStatus, rr.Code)
+
+			// Parse the response body
+			var metrics MetricsJSON
+			err = json.Unmarshal(rr.Body.Bytes(), &metrics)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Check the delta is what we expect
+			assert.Equal(t, tt.expectedDelta, *metrics.Delta)
 		})
 	}
 }

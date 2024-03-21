@@ -24,3 +24,42 @@
 {"level":"error","msg":"failed to send gauge metric RandomValue: Post \"http:///update/\": http: no Host in request URL","time":"2024-03-21T15:32:30+08:00"}
 {"level":"error","msg":"server returned non-OK status for gauge metric RandomValue: 500 Internal Server Error","time":"2024-03-21T15:32:30+08:00"}
 {"level":"error","msg":"server returned non-OK status for gauge metric RandomValue: 500 Internal Server Error","time":"2024-03-21T15:32:30+08:00"}
+{"error":"Post \"http://localhost/update/gauge/test/1\": dial tcp [::1]:80: connect: connection refused","level":"error","msg":"failed to send gauge metric test","time":"2024-03-21T16:48:39+08:00"}
+{"error":"Post \"http://localhost/update/counter/Pool/1\": dial tcp [::1]:80: connect: connection refused","level":"error","msg":"failed to send counter metric Pool","time":"2024-03-21T16:48:39+08:00"}
+{"level":"error","msg":"error sending gauge metric test: Post \"http://localhost/update/gauge/test/1\": dial tcp [::1]:80: connect: connection refused","time":"2024-03-21T16:48:39+08:00"}
+{"level":"error","msg":"error sending counter metric Pool: Post \"http://localhost/update/counter/Pool/1\": dial tcp [::1]:80: connect: connection refused","time":"2024-03-21T16:48:39+08:00"}
+{"level":"error","msg":"failed to send gauge metric test: Post \"http://localhost/update/\": dial tcp [::1]:80: connect: connection refused","time":"2024-03-21T16:48:39+08:00"}
+{"level":"error","msg":"failed to send counter metric Pool: Post \"http://localhost/update/\": dial tcp [::1]:80: connect: connection refused","time":"2024-03-21T16:48:39+08:00"}
+{"level":"error","msg":"error sending gauge metric test: failed to send gauge metric test: Post \"http://localhost/update/\": dial tcp [::1]:80: connect: connection refused","time":"2024-03-21T16:48:39+08:00"}
+{"level":"error","msg":"error sending counter metric Pool: failed to send counter metric Pool: Post \"http://localhost/update/\": dial tcp [::1]:80: connect: connection refused","time":"2024-03-21T16:48:39+08:00"}
+{"level":"error","msg":"invalid metric type: ","time":"2024-03-21T16:48:39+08:00"}
+{"error":"Post \"http:///update/gauge/RandomValue/0.5\": http: no Host in request URL","level":"error","msg":"failed to send gauge metric RandomValue","time":"2024-03-21T16:48:39+08:00"}
+{"level":"error","msg":"failed to send gauge metric RandomValue: Post \"http:///update/\": http: no Host in request URL","time":"2024-03-21T16:48:39+08:00"}
+{"level":"error","msg":"server returned non-OK status for gauge metric RandomValue: 500 Internal Server Error","time":"2024-03-21T16:48:39+08:00"}
+{"level":"error","msg":"server returned non-OK status for gauge metric RandomValue: 500 Internal Server Error","time":"2024-03-21T16:48:39+08:00"}
+{"error":"Post \"http://localhost/update/gauge/test/1\": dial tcp [::1]:80: connect: connection refused","level":"error","msg":"failed to send gauge metric test","time":"2024-03-21T16:48:53+08:00"}
+{"error":"Post \"http://localhost/update/counter/Pool/1\": dial tcp [::1]:80: connect: connection refused","level":"error","msg":"failed to send counter metric Pool","time":"2024-03-21T16:48:53+08:00"}
+{"level":"error","msg":"error sending gauge metric test: Post \"http://localhost/update/gauge/test/1\": dial tcp [::1]:80: connect: connection refused","time":"2024-03-21T16:48:53+08:00"}
+{"level":"error","msg":"error sending counter metric Pool: Post \"http://localhost/update/counter/Pool/1\": dial tcp [::1]:80: connect: connection refused","time":"2024-03-21T16:48:53+08:00"}
+{"level":"error","msg":"failed to send gauge metric test: Post \"http://localhost/update/\": dial tcp [::1]:80: connect: connection refused","time":"2024-03-21T16:48:53+08:00"}
+{"level":"error","msg":"failed to send counter metric Pool: Post \"http://localhost/update/\": dial tcp [::1]:80: connect: connection refused","time":"2024-03-21T16:48:53+08:00"}
+{"level":"error","msg":"error sending gauge metric test: failed to send gauge metric test: Post \"http://localhost/update/\": dial tcp [::1]:80: connect: connection refused","time":"2024-03-21T16:48:53+08:00"}
+{"level":"error","msg":"error sending counter metric Pool: failed to send counter metric Pool: Post \"http://localhost/update/\": dial tcp [::1]:80: connect: connection refused","time":"2024-03-21T16:48:53+08:00"}
+{"level":"error","msg":"invalid metric type: ","time":"2024-03-21T16:48:53+08:00"}
+{"error":"Post \"http:///update/gauge/RandomValue/0.5\": http: no Host in request URL","level":"error","msg":"failed to send gauge metric RandomValue","time":"2024-03-21T16:48:53+08:00"}
+{"level":"error","msg":"failed to send gauge metric RandomValue: Post \"http:///update/\": http: no Host in request URL","time":"2024-03-21T16:48:53+08:00"}
+{"level":"error","msg":"server returned non-OK status for gauge metric RandomValue: 500 Internal Server Error","time":"2024-03-21T16:48:53+08:00"}
+{"level":"error","msg":"server returned non-OK status for gauge metric RandomValue: 500 Internal Server Error","time":"2024-03-21T16:48:53+08:00"}
+{"error":"Post \"http://localhost/update/gauge/test/1\": dial tcp [::1]:80: connect: connection refused","level":"error","msg":"failed to send gauge metric test","time":"2024-03-21T17:01:56+08:00"}
+{"error":"Post \"http://localhost/update/counter/Pool/1\": dial tcp [::1]:80: connect: connection refused","level":"error","msg":"failed to send counter metric Pool","time":"2024-03-21T17:01:56+08:00"}
+{"level":"error","msg":"error sending gauge metric test: Post \"http://localhost/update/gauge/test/1\": dial tcp [::1]:80: connect: connection refused","time":"2024-03-21T17:01:56+08:00"}
+{"level":"error","msg":"error sending counter metric Pool: Post \"http://localhost/update/counter/Pool/1\": dial tcp [::1]:80: connect: connection refused","time":"2024-03-21T17:01:56+08:00"}
+{"level":"error","msg":"failed to send counter metric Pool: Post \"http://localhost/update/\": dial tcp [::1]:80: connect: connection refused","time":"2024-03-21T17:01:56+08:00"}
+{"level":"error","msg":"failed to send gauge metric test: Post \"http://localhost/update/\": dial tcp [::1]:80: connect: connection refused","time":"2024-03-21T17:01:56+08:00"}
+{"level":"error","msg":"error sending counter metric Pool: failed to send counter metric Pool: Post \"http://localhost/update/\": dial tcp [::1]:80: connect: connection refused","time":"2024-03-21T17:01:56+08:00"}
+{"level":"error","msg":"error sending gauge metric test: failed to send gauge metric test: Post \"http://localhost/update/\": dial tcp [::1]:80: connect: connection refused","time":"2024-03-21T17:01:56+08:00"}
+{"level":"error","msg":"invalid metric type: ","time":"2024-03-21T17:01:56+08:00"}
+{"error":"Post \"http:///update/gauge/RandomValue/0.5\": http: no Host in request URL","level":"error","msg":"failed to send gauge metric RandomValue","time":"2024-03-21T17:01:56+08:00"}
+{"level":"error","msg":"failed to send gauge metric RandomValue: Post \"http:///update/\": http: no Host in request URL","time":"2024-03-21T17:01:56+08:00"}
+{"level":"error","msg":"server returned non-OK status for gauge metric RandomValue: 500 Internal Server Error","time":"2024-03-21T17:01:56+08:00"}
+{"level":"error","msg":"server returned non-OK status for gauge metric RandomValue: 500 Internal Server Error","time":"2024-03-21T17:01:56+08:00"}
