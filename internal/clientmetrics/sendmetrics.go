@@ -22,10 +22,6 @@ func (t *TextMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 		baseURL = "http://" + baseURL
 	}
 
-	if metricType == "gauge" && metricName == "RandomValue" {
-		fmt.Println("RandomValue: ", metricValue)
-	}
-
 	resp, err := client.R().
 		SetHeader("Content-Type", "text/plain").
 		Post(fmt.Sprintf("%s/update/%s/%s/%s", baseURL, metricType, metricName, metricValue))

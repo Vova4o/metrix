@@ -36,7 +36,7 @@ func ShowMetrics(storage storage.StorageInterface, tempFile string) http.Handler
 
 // ParseTemplate parses the template file and returns the parsed template
 func ParseTemplate(tempFile string) (*template.Template, func(w http.ResponseWriter, r *http.Request)) {
-	tmpl, err := template.ParseFiles(filepath.Join("../../templates", tempFile))
+	tmpl, err := template.ParseFiles(filepath.Join("..", "..", "templates", tempFile))
 	if err != nil {
 		log.Printf("Error parsing template: %v", err)
 		return nil, func(w http.ResponseWriter, r *http.Request) {
