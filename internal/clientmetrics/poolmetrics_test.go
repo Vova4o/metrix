@@ -85,7 +85,7 @@ func TestReportMetrics(t *testing.T) {
 		{
 			name:           "Nil GaugeMetrics",
 			gaugeMetrics:   nil,
-			counterMetrics: map[string]int64{"Pool": 1},
+			counterMetrics: map[string]int64{"Poll": 1},
 			client:         resty.New(),
 			senderText:     &TextMetricSender{},
 			senderJSON:     &JSONMetricSender{},
@@ -103,7 +103,7 @@ func TestReportMetrics(t *testing.T) {
 		{
 			name:           "Nil Client",
 			gaugeMetrics:   map[string]float64{"test": 1.0},
-			counterMetrics: map[string]int64{"Pool": 1},
+			counterMetrics: map[string]int64{"Poll": 1},
 			client:         nil,
 			senderText:     &TextMetricSender{},
 			senderJSON:     &JSONMetricSender{},
@@ -112,7 +112,7 @@ func TestReportMetrics(t *testing.T) {
 		{
 			name:           "Nil TextSender",
 			gaugeMetrics:   map[string]float64{"test": 1.0},
-			counterMetrics: map[string]int64{"Pool": 1},
+			counterMetrics: map[string]int64{"Poll": 1},
 			client:         resty.New(),
 			senderText:     nil,
 			senderJSON:     &JSONMetricSender{},
@@ -121,7 +121,7 @@ func TestReportMetrics(t *testing.T) {
 		{
 			name:           "Nil JSONSender",
 			gaugeMetrics:   map[string]float64{"test": 1.0},
-			counterMetrics: map[string]int64{"Pool": 1},
+			counterMetrics: map[string]int64{"Poll": 1},
 			client:         resty.New(),
 			senderText:     &TextMetricSender{},
 			senderJSON:     nil,

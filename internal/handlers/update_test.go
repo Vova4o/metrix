@@ -166,7 +166,7 @@ func TestHandleUpdateJSON(t *testing.T) {
 	}
 }
 
-func TestHandleUpdateJSON_PoolCounter(t *testing.T) {
+func TestHandleUpdateJSON_PollCounter(t *testing.T) {
 	storage := storage.NewMemStorage()
 	handler := HandleUpdateJSON(storage)
 
@@ -177,14 +177,14 @@ func TestHandleUpdateJSON_PoolCounter(t *testing.T) {
 		expectedDelta  int64
 	}{
 		{
-			name:           "First PoolCounter",
-			body:           `{"type":"counter","id":"PoolCounter","delta":10}`,
+			name:           "First PollCounter",
+			body:           `{"type":"counter","id":"PollCounter","delta":10}`,
 			expectedStatus: http.StatusOK,
 			expectedDelta:  10,
 		},
 		{
-			name:           "Second PoolCounter",
-			body:           `{"type":"counter","id":"PoolCounter","delta":20}`,
+			name:           "Second PollCounter",
+			body:           `{"type":"counter","id":"PollCounter","delta":20}`,
 			expectedStatus: http.StatusOK,
 			expectedDelta:  30,
 		},

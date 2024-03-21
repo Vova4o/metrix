@@ -64,7 +64,7 @@ func (ma *Metrics) PollMetrics() error {
 		"RandomValue":   rand.Float64(),
 	}
 
-	ma.CounterMetrics["PoolCount"]++
+	ma.CounterMetrics["PollCount"]++
 
 	return nil
 }
