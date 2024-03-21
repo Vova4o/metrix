@@ -58,46 +58,50 @@ func MetricValue(storage storage.StorageInterface) http.HandlerFunc {
 }
 
 func MetricValueJSON(storage storage.StorageInterface) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        var metrics MetricsJSON
+	return func(w http.ResponseWriter, r *http.Request) {
+		var metrics MetricsJSON
 
-        // Decode the JSON request body into the metrics struct
-        err := json.NewDecoder(r.Body).Decode(&metrics)
-        if err != nil {
-            http.Error(w, err.Error(), http.StatusBadRequest)
-            return
-        }
+		// Decode the JSON request body into the metrics struct
+		err := json.NewDecoder(r.Body).Decode(&metrics)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 
-        var mt MetricType
-        switch metrics.MType {
-        case "gauge":
-            mt = GaugeMetricType{}
-        case "counter":
-            mt = CounterMetricType{}
-        default:
-            log.Printf("Invalid metric type: %s", metrics.MType)
-            http.Error(w, "Invalid metric type", http.StatusBadRequest)
-            return
-        }
+		var mt MetricType
+		switch metrics.MType {
+		case "gauge":
+			mt = GaugeMetricType{}
+		case "counter":
+			mt = CounterMetricType{}
+		default:
+			log.Printf("Invalid metric type: %s", metrics.MType)
+			http.Error(w, "Invalid metric type", http.StatusBadRequest)
+			return
+		}
 
-        value, exists := mt.GetValue(storage, metrics.ID)
-        if !exists {
-            http.Error(w, "Metric not found", http.StatusNotFound)
-            return
-        }
+		value, exists := mt.GetValue(storage, metrics.ID)
+		if !exists {
+			http.Error(w, "Metric not found", http.StatusNotFound)
+			return
+		}
 
-        w.Header().Set("Content-Type", "application/json")
-        w.WriteHeader(http.StatusOK)
-        if metrics.MType == "gauge" {
-            json.NewEncoder(w).Encode(map[string]interface{}{
-                "value": fmt.Sprintf("%.9f", value),
-            })
-            return
-        } 
-        if metrics.MType == "counter" {
-            json.NewEncoder(w).Encode(map[string]interface{}{
-                "delta": fmt.Sprintf("%.9f", value), 
-            })
-        }
-    }
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		if metrics.MType == "gauge" {
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"id":    metrics.ID,
+				"type":  metrics.MType,
+				"value": fmt.Sprintf("%.9f", value),
+			})
+			return
+		}
+		if metrics.MType == "counter" {
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"id":    metrics.ID,
+				"type":  metrics.MType,
+				"delta": fmt.Sprintf("%.9f", value),
+			})
+		}
+	}
 }
