@@ -13,17 +13,17 @@ import (
 
 func main() {
 	// Open a file for logging
-	logger, err := logger.NewFileLogger(config.AgentLogFile)
+	_, err := logger.NewLogger(config.AgentLogFile)
 	if err != nil {
 		log.Fatalf("Failed to create logger: %v", err)
 	}
-	defer logger.CloseLogger()
+	defer logger.Log.CloseLogger()
 
-	logger.SetOutput()
+	logger.Log.SetOutput()
 
 	ctx := context.Background()
 	client := resty.New()
-	err = app.NewAgent(ctx, client, logger)
+	err = app.NewAgent(ctx, client)
 	if err != nil {
 		log.Fatalf("Failed to start the agent: %v", err)
 	}

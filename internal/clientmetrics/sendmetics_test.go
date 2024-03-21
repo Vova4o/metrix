@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"Vova4o/metrix/internal/logger"
+
 	"github.com/go-resty/resty/v2"
 )
 
@@ -17,7 +19,12 @@ func (m *MockRestClient) R() *resty.Request {
 	return m.client.R()
 }
 
+func setup() {
+	logger.Log, _ = logger.NewLogger("test.log")
+}
+
 func TestSendMetric(t *testing.T) {
+	setup()
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		if strings.HasPrefix(req.URL.Path, "/error") {
 			rw.WriteHeader(http.StatusInternalServerError)
@@ -144,6 +151,7 @@ func TestSendMetric(t *testing.T) {
 }
 
 func TestJSONMetricSender_SendMetric(t *testing.T) {
+	setup()
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		if strings.HasPrefix(req.URL.Path, "/error") {
 			rw.WriteHeader(http.StatusInternalServerError)

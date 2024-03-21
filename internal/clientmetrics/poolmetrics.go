@@ -2,7 +2,6 @@ package clientmetrics
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"math/rand"
 	"runtime"
@@ -11,25 +10,10 @@ import (
 	"time"
 
 	allflags "Vova4o/metrix/internal/flag"
+	"Vova4o/metrix/internal/logger"
 
 	"github.com/go-resty/resty/v2"
 )
-
-type Metrics struct {
-	GaugeMetrics   map[string]float64 `json:"gauge"`
-	CounterMetrics map[string]int64   `json:"counter"`
-	Client         *resty.Client
-	PollTicker     *time.Ticker
-	ReportTicker   *time.Ticker
-	BaseURL        string
-	TextSender     MetricSender
-	JSONSender     MetricSender
-}
-
-type MetricsClient interface {
-	PollMetrics() error
-	ReportMetrics(baseURL string) error
-}
 
 func NewMetrics(client *resty.Client) *Metrics {
 	return &Metrics{
@@ -107,10 +91,10 @@ func (ma *Metrics) ReportMetrics(baseURL string) error {
 	reportMetric := func(metricType, name, value string) {
 		defer wg.Done()
 		if err := ma.TextSender.SendMetric(ma.Client, metricType, name, value, baseURL); err != nil {
-			errs <- fmt.Errorf("error sending %s metric %s: %v", metricType, name, err)
+			logger.Log.Logger.Errorf("error sending %s metric %s: %v", metricType, name, err)
 		}
 		if err := ma.JSONSender.SendMetric(ma.Client, metricType, name, value, baseURL); err != nil {
-			errs <- fmt.Errorf("error sending %s metric %s: %v", metricType, name, err)
+			logger.Log.Logger.Errorf("error sending %s metric %s: %v", metricType, name, err)
 		}
 	}
 

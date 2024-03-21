@@ -10,7 +10,7 @@ import (
 
 func main() {
 	// Open a file for logging
-	logger, err := logger.NewFileLogger(config.ServerLogFile)
+	logger, err := logger.NewLogger(config.ServerLogFile)
 	if err != nil {
 		log.Fatalf("Failed to create logger: %v", err)
 	}

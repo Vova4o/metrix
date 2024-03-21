@@ -22,7 +22,7 @@ func TestShowMetricsHandler(t *testing.T) {
 			name:           "Success",
 			templateFile:   "metrix.page.tmpl",
 			expectedStatus: http.StatusOK,
-			expectedBody:   []string{"<li>gaugeTest: 10.0000</li>", "<li>counterTest: 20</li>"},
+			expectedBody:   []string{"<li>gaugeTest: 10.000000000</li>", "<li>counterTest: 20</li>"},
 		},
 		{
 			name:           "TemplateParseError",
@@ -36,7 +36,7 @@ func TestShowMetricsHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create a storage and set some metrics
 			storage := storage.NewMemStorage()
-			storage.SetGauge("gaugeTest", 10.0000)
+			storage.SetGauge("gaugeTest", 10.000000000)
 			storage.SetCounter("counterTest", 20)
 
 			// Create a request to pass to our handler

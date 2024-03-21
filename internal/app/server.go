@@ -51,7 +51,7 @@ func NewServer() error {
 	memStorage := storage.NewMemStorage()
 
 	// Create a new FileLogger
-	log, err := logger.NewFileLogger(config.ServerLogFile)
+	log, err := logger.NewLogger(config.ServerLogFile)
 	if err != nil {
 		return err
 	}

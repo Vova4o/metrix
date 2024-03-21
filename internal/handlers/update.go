@@ -69,16 +69,9 @@ func logAndRespondError(w http.ResponseWriter, err error, message string, code i
 	http.Error(w, message, code)
 }
 
-type MetricsJSON struct {
-	ID    string   `json:"id"`              // имя метрики
-	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
-	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
-	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
-}
-
 func HandleUpdateJSON(storage storage.StorageInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var metrics Metrics
+		var metrics MetricsJSON
 		err := json.NewDecoder(r.Body).Decode(&metrics)
 		if err != nil {
 			http.Error(w, "Invalid JSON", http.StatusBadRequest)

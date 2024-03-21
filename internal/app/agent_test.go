@@ -33,7 +33,7 @@ func TestNewAgent(t *testing.T) {
             client := resty.New()
 
             // Create a new logger
-            log, _ := logger.NewFileLogger("test.log")
+            log, _ := logger.NewLogger("test.log")
             defer log.CloseLogger()
 
             // Create a test hook for the logger
@@ -44,7 +44,7 @@ func TestNewAgent(t *testing.T) {
             defer cancel()
 
             // Run the NewAgent function with the context as the first argument
-            err := app.NewAgent(ctx, client, log)
+            err := app.NewAgent(ctx, client)
             if err != nil {
                 t.Fatalf("Failed to start the agent: %v", err)
             }
