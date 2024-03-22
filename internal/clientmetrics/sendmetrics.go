@@ -1,9 +1,12 @@
 package clientmetrics
 
 import (
+	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -21,6 +24,27 @@ func (t *TextMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 	if !strings.HasPrefix(baseURL, "http://") {
 		baseURL = "http://" + baseURL
 	}
+
+	req := client.R().
+		SetHeader("Content-Type", "text/plain").
+		SetHeader("Accept-Encoding", "gzip").
+		SetBody(metricValue)
+
+	if strings.Contains(req.Header.Get("Accept-Encoding"), "gzip") {
+		var b bytes.Buffer
+		gz := gzip.NewWriter(&b)
+		if _, err := gz.Write([]byte(metricValue)); err != nil {
+			return err
+		}
+		if err := gz.Close(); err != nil {
+			return err
+		}
+
+		req.SetBody(b.Bytes())
+		req.SetHeader("Content-Encoding", "gzip")
+	}
+
+	fmt.Printf("Request Headers: TEXT %v\n", req.Header)
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "text/plain").
@@ -85,9 +109,31 @@ func (j *JSONMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 		return err
 	}
 
+	req := client.R().
+		SetHeader("Content-Type", "application/json").
+		SetHeader("Accept-Encoding", "gzip").
+		SetBody(jsonDate)
+
+	if strings.Contains(req.Header.Get("Accept-Encoding"), "gzip") {
+		var b bytes.Buffer
+		gz := gzip.NewWriter(&b)
+		if _, err := gz.Write(jsonDate); err != nil {
+			return err
+		}
+		if err := gz.Close(); err != nil {
+			return err
+		}
+
+		req.SetBody(b.Bytes())
+		req.SetHeader("Content-Encoding", "gzip")
+	} else {
+		req.SetBody(jsonDate)
+	}
+
+	fmt.Printf("Request Headers: JSON %v\n", req.Header)
+
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
-		SetBody(jsonDate).
 		Post(fmt.Sprintf("%s/update/", baseURL))
 		// this is how it maigh look like
 	if err != nil {
@@ -101,4 +147,30 @@ func (j *JSONMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 	}
 
 	return nil
+}
+
+// GzipWriter is a middleware that compresses response body in gzip format
+func GzipWriter(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		w.Header().Set("Content-Encoding", "gzip")
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+
+		gzw := gzipResponseWriter{Writer: gz, ResponseWriter: w}
+		next.ServeHTTP(gzw, r)
+	})
+}
+
+type gzipResponseWriter struct {
+	io.Writer
+	http.ResponseWriter
+}
+
+func (gzw gzipResponseWriter) Write(b []byte) (int, error) {
+	return gzw.Writer.Write(b)
 }
