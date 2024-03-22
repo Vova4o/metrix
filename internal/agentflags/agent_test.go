@@ -1,4 +1,4 @@
-package allflags
+package agentflags
 
 import (
 	"os"

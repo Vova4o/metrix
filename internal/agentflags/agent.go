@@ -1,26 +1,24 @@
-package allflags
+package agentflags
 
 import (
 	"log"
+	"os"
 	"strings"
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
-func init() {
-	// Set the default values
-	viper.SetDefault("ServerAddress", "localhost:8080")
-	viper.SetDefault("ReportInterval", 10)
-	viper.SetDefault("PollInterval", 2)
+var flags = pflag.NewFlagSet("flags", pflag.ExitOnError)
 
+func init() {
 	// Define the flags and bind them to viper
-	pflag.StringP("ServerAddress", "a", viper.GetString("ServerAddress"), "HTTP server network address")
-	pflag.IntP("ReportInterval", "r", viper.GetInt("ReportInterval"), "Interval between fetching reportable metrics in seconds")
-	pflag.IntP("PollInterval", "p", viper.GetInt("PollInterval"), "Interval between polling metrics in seconds")
+	flags.StringP("ServerAddress", "a", "localhost:8080", "HTTP server network address")
+	flags.IntP("ReportInterval", "r", 10, "Interval between fetching reportable metrics in seconds")
+	flags.IntP("PollInterval", "p", 2, "Interval between polling metrics in seconds")
 
 	// Parse the command-line flags
-	pflag.Parse()
+	flags.Parse(os.Args[1:])
 
 	// Bind the flags to viper
 	bindFlagToViper("ServerAddress")
@@ -38,7 +36,7 @@ func init() {
 }
 
 func bindFlagToViper(flagName string) {
-	if err := viper.BindPFlag(flagName, pflag.Lookup(flagName)); err != nil {
+	if err := viper.BindPFlag(flagName, flags.Lookup(flagName)); err != nil {
 		log.Println(err)
 	}
 }

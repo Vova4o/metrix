@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"Vova4o/metrix/internal/app"
+	appserver "Vova4o/metrix/internal/app/server"
 	"Vova4o/metrix/internal/config"
 	"Vova4o/metrix/internal/logger"
 )
@@ -15,10 +15,10 @@ func main() {
 		log.Fatalf("Failed to create logger: %v", err)
 	}
 	defer logger.CloseLogger()
-	
+
 	logger.SetOutput()
-	
-	err = app.NewServer()
+
+	err = appserver.NewServer()
 	if err != nil {
 		log.Fatalf("Failed to start the server: %v", err)
 	}

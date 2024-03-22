@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	allflags "Vova4o/metrix/internal/flag"
+	"Vova4o/metrix/internal/agentflags"
 	"Vova4o/metrix/internal/logger"
 
 	"github.com/go-resty/resty/v2"
@@ -21,9 +21,9 @@ func NewMetrics(client *resty.Client) *Metrics {
 		GaugeMetrics:   make(map[string]float64),
 		CounterMetrics: make(map[string]int64),
 		Client:         client,
-		PollTicker:     time.NewTicker(time.Duration(allflags.GetPollInterval()) * time.Second),
-		ReportTicker:   time.NewTicker(time.Duration(allflags.GetReportInterval()) * time.Second),
-		BaseURL:        allflags.GetServerAddress(),
+		PollTicker:     time.NewTicker(time.Duration(agentflags.GetPollInterval()) * time.Second),
+		ReportTicker:   time.NewTicker(time.Duration(agentflags.GetReportInterval()) * time.Second),
+		BaseURL:        agentflags.GetServerAddress(),
 		TextSender:     &TextMetricSender{},
 		JSONSender:     &JSONMetricSender{},
 	}
