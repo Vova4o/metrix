@@ -26,9 +26,14 @@ func NewFileStorage(memStorage *MemStorage, storeInterval int, fileStoragePath s
 
 	// Load previously saved metrics from the file at startup
 	if storage.restore {
-		if err := storage.LoadFromFile(); err != nil {
-			logger.Log.Logger.WithError(err).Error("Failed to load metrics from file")
-			// log.Logger.WithError(err).Error("Failed to load metrics from file")
+		if _, err := os.Stat(storage.fileStoragePath); err == nil {
+			if err := storage.LoadFromFile(); err != nil {
+				logger.Log.Logger.WithError(err).Error("Failed to load metrics from file")
+			}
+		} else if os.IsNotExist(err) {
+			logger.Log.Logger.Info("No previous metrics file found. Starting fresh.")
+		} else {
+			logger.Log.Logger.WithError(err).Error("Failed to check if metrics file exists")
 		}
 	}
 
