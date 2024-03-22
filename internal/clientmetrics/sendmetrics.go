@@ -44,7 +44,7 @@ func (t *TextMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 		req.SetHeader("Content-Encoding", "gzip")
 	}
 
-	fmt.Printf("Request Headers: TEXT %v\n", req.Header)
+	// fmt.Printf("Request Headers: TEXT %v\n", req.Header)
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "text/plain").
@@ -130,7 +130,7 @@ func (j *JSONMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 		req.SetBody(jsonDate)
 	}
 
-	fmt.Printf("Request Headers: JSON %v\n", req.Header)
+	// fmt.Printf("Request Headers: JSON %v\n", req.Header)
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").

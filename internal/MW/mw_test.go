@@ -23,7 +23,7 @@ func TestRequestLogger(t *testing.T) {
 	})
 
 	// Wrap the test handler with the middleware
-	var h http.Handler = middleware(handler)
+	h := middleware(handler)
 
 	// Create a test request
 	req := httptest.NewRequest("GET", "/", nil)
@@ -48,7 +48,7 @@ func TestGzipMiddleware(t *testing.T) {
 	})
 
 	// Wrap the test handler with the middleware
-	var h http.Handler = middleware(handler)
+	h := middleware(handler)
 
 	// Create a test request
 	req := httptest.NewRequest("GET", "/", nil)

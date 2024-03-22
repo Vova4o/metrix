@@ -23,6 +23,8 @@ func ShowMetrics(storage storage.StorageInterface, tempFile string) http.Handler
 
 	// Return the actual handler function
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Set the content type
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		// Create a map of maps to hold the metrics
 		data := map[string]interface{}{
 			"GaugeMetrics":   GaugeMetricType{}.GetAll(storage),
