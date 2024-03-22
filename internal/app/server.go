@@ -3,43 +3,17 @@ package app
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
-	"github.com/sirupsen/logrus"
 
+	mw "Vova4o/metrix/internal/MW"
 	"Vova4o/metrix/internal/config"
 	allflags "Vova4o/metrix/internal/flag"
 	"Vova4o/metrix/internal/handlers"
 	"Vova4o/metrix/internal/logger"
 	"Vova4o/metrix/internal/storage"
 )
-
-func RequestLogger(logger *logger.FileLogger) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		fn := func(w http.ResponseWriter, r *http.Request) {
-			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
-
-			start := time.Now()
-
-			defer func() {
-				duration := time.Since(start)
-				logger.Logger.WithFields(logrus.Fields{
-					"status":   ww.Status(),
-					"method":   r.Method,
-					"path":     r.URL.Path,
-					"duration": duration.String(),
-					"size":     ww.BytesWritten(),
-				}).Info("Handled request")
-			}()
-
-			next.ServeHTTP(ww, r)
-		}
-
-		return http.HandlerFunc(fn)
-	}
-}
 
 func NewServer() error {
 	// Create a new router
@@ -57,7 +31,8 @@ func NewServer() error {
 	}
 	defer log.CloseLogger()
 
-	mux.Use(RequestLogger(log))
+	mux.Use(mw.RequestLogger(log))
+	mux.Use(mw.GzipMiddleware)
 	// mux.Use(middleware.Logger)
 	mux.Use(middleware.Recoverer)
 
