@@ -34,28 +34,17 @@ func NewFileStorage(memStorage *MemStorage, storeInterval int, fileStoragePath s
 		return nil, fmt.Errorf("restore cannot be true if fileStoragePath is empty")
 	}
 	if fs.restore && fs.fileStoragePath != "" {
-		if _, err := os.Stat(fs.fileStoragePath); os.IsNotExist(err) {
-			// create a new file if it doesn't exist
-			file, err := os.Create(fs.fileStoragePath)
-			if err != nil {
-				logger.Log.Logger.WithError(err).Error("Failed to create new file")
-				return nil, err
-			}
-			defer file.Close()
-			logger.Log.Logger.Info("No previous metrics file found. Created a new one.")
-		} else if err != nil {
-			// some other error occurred when trying to stat the file
-			logger.Log.Logger.WithError(err).Error("Failed to check if metrics file exists")
-			return nil, err
-		} else {
-			// File exists, load it into memory
-			fmt.Println("Loading metrics from file:", fs.fileStoragePath)
-			if err := fs.LoadFromFile(); err != nil {
-				logger.Log.Logger.WithError(err).Error("Failed to load metrics from file")
-				return nil, err
-			}
-		}
-	}
+        if err := fs.createFileIfNotExists(); err != nil {
+            return nil, err
+        }
+
+        // File exists, load it into memory
+        fmt.Println("Loading metrics from file:", fs.fileStoragePath)
+        if err := fs.LoadFromFile(); err != nil {
+            logger.Log.Logger.WithError(err).Error("Failed to load metrics from file")
+            return nil, err
+        }
+    }
 
 	// Save current metrics to the file at the specified interval
 	if fs.fileStoragePath != "" {
@@ -65,38 +54,61 @@ func NewFileStorage(memStorage *MemStorage, storeInterval int, fileStoragePath s
 	return fs, nil
 }
 
+func (s *FileStorage) createFileIfNotExists() error {
+    if _, err := os.Stat(s.fileStoragePath); os.IsNotExist(err) {
+        // create a new file if it doesn't exist
+        file, err := os.Create(s.fileStoragePath)
+        if err != nil {
+            logger.Log.Logger.WithError(err).Error("Failed to create new file")
+            return err
+        }
+        defer file.Close()
+        logger.Log.Logger.Info("No previous metrics file found. Created a new one.")
+    } else if err != nil {
+        // some other error occurred when trying to stat the file
+        logger.Log.Logger.WithError(err).Error("Failed to check if metrics file exists")
+        return err
+    }
+    return nil
+}
+
+
 func (s *FileStorage) LoadFromFile() error {
-	// Open the file
-	file, err := os.Open(s.fileStoragePath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
+    // Open the file
+    file, err := os.Open(s.fileStoragePath)
+    if err != nil {
+        return err
+    }
+    defer file.Close()
 
-	// Check if the file is empty
-	info, err := file.Stat()
-	if err != nil {
-		return err
-	}
-	if info.Size() == 0 {
-		// The file is empty, return without error
-		return nil
-	}
+    // Check if the file is empty
+    info, err := file.Stat()
+    if err != nil {
+        return err
+    }
+    if info.Size() == 0 {
+        // The file is empty, return without error
+        return nil
+    }
 
-	contents, err := os.ReadFile(s.fileStoragePath)
-	if err != nil {
-		return err
-	}
+    contents, err := os.ReadFile(s.fileStoragePath)
+    if err != nil {
+        return err
+    }
 
-	// fmt.Printf("File contents: %s\n", string(file))
+    // Check if the contents are empty
+    if len(contents) == 0 {
+        // The contents are empty, return without error
+        return nil
+    }
 
-	err = json.Unmarshal(contents, s.memStorage)
-	if err != nil {
-		fmt.Printf("Failed to unmarshal file contents: %v\n", err)
-		return err
-	}
+    err = json.Unmarshal(contents, s.memStorage)
+    if err != nil {
+        fmt.Printf("Failed to unmarshal file contents: %v\n", err)
+        return err
+    }
 
-	return nil
+    return nil
 }
 
 func (s *FileStorage) Close() {
