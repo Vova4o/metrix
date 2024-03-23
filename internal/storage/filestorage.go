@@ -47,37 +47,15 @@ func NewFileStorage(memStorage *MemStorage, storeInterval int, fileStoragePath s
 			// some other error occurred when trying to stat the file
 			logger.Log.Logger.WithError(err).Error("Failed to check if metrics file exists")
 			return nil, err
+		} else {
+			// File exists, load it into memory
+			fmt.Println("Loading metrics from file:", fs.fileStoragePath)
+			if err := fs.LoadFromFile(); err != nil {
+				logger.Log.Logger.WithError(err).Error("Failed to load metrics from file")
+				return nil, err
+			}
 		}
 	}
-
-	// var fileExists bool
-	// // Load previously saved metrics from the file at startup
-	// if storage.restore && storage.fileStoragePath != "" {
-	// 	if _, err := os.Stat(storage.fileStoragePath); os.IsNotExist(err) {
-	// 		fileExists = false
-	// 		// File does not exist, create a new one
-	// 		file, err := os.Create(storage.fileStoragePath)
-	// 		if err != nil {
-	// 			logger.Log.Logger.WithError(err).Error("Failed to create new file")
-	// 			return nil
-	// 		}
-	// 		defer file.Close()
-	// 		logger.Log.Logger.Info("No previous metrics file found. Created a new one.")
-	// 	} else if err != nil {
-	// 		// Some other error occurred when trying to stat the file
-	// 		logger.Log.Logger.WithError(err).Error("Failed to check if metrics file exists")
-	// 		return nil
-	// 	} else {
-	// 		fileExists = true // Set fileExists to true when the file does exist
-	// 	}
-
-	// 	if fileExists {
-	// 		// Check if storage is not nil before calling LoadFromFile
-	// 		if err := storage.LoadFromFile(); err != nil {
-	// 			logger.Log.Logger.WithError(err).Error("Failed to load metrics from file")
-	// 		}
-	// 	}
-	// }
 
 	// Save current metrics to the file at the specified interval
 	if fs.fileStoragePath != "" {
@@ -88,14 +66,31 @@ func NewFileStorage(memStorage *MemStorage, storeInterval int, fileStoragePath s
 }
 
 func (s *FileStorage) LoadFromFile() error {
-	file, err := os.ReadFile(s.fileStoragePath)
+	// Open the file
+	file, err := os.Open(s.fileStoragePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Check if the file is empty
+	info, err := file.Stat()
+	if err != nil {
+		return err
+	}
+	if info.Size() == 0 {
+		// The file is empty, return without error
+		return nil
+	}
+
+	contents, err := os.ReadFile(s.fileStoragePath)
 	if err != nil {
 		return err
 	}
 
 	// fmt.Printf("File contents: %s\n", string(file))
 
-	err = json.Unmarshal(file, s.memStorage)
+	err = json.Unmarshal(contents, s.memStorage)
 	if err != nil {
 		fmt.Printf("Failed to unmarshal file contents: %v\n", err)
 		return err
