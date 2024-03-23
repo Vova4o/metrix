@@ -59,9 +59,12 @@ func GetStoreInterval() int {
 }
 
 func GetFileStoragePath() string {
-	return viper.GetString("FileStoragePath")
+    path := viper.GetString("FileStoragePath")
+    if path == "=" {
+        return ""
+    }
+    return path
 }
-
 func GetRestore() bool {
 	return viper.GetBool("Restore")
 }
