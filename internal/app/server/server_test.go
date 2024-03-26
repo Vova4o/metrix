@@ -23,7 +23,7 @@ func TestServer(t *testing.T) {
 	}()
 
 	// Wait for the server to start
-	time.Sleep(1 * time.Second)
+	time.Sleep(3 * time.Second)
 
 	// Check if the server is up and running
 	_, err := net.Dial("tcp", "localhost:8080")

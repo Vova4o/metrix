@@ -62,19 +62,15 @@ func NewFileStorage(s Storager, storeInterval int, fileStoragePath string, resto
 }
 
 func (s *FileStorage) createFileIfNotExists() error {
-	if _, err := os.Stat(s.fileStoragePath); os.IsNotExist(err) {
-		// create a new file if it doesn't exist
+	_, err := os.Stat(s.fileStoragePath)
+	if os.IsNotExist(err) {
 		file, err := os.Create(s.fileStoragePath)
 		if err != nil {
-			logger.Log.WithError(err).Error("Failed to create new file")
-			return err
+			return fmt.Errorf("failed to create file at path %s: %w", s.fileStoragePath, err)
 		}
 		defer file.Close()
-		logger.Log.Info("No previous metrics file found. Created a new one.")
 	} else if err != nil {
-		// some other error occurred when trying to stat the file
-		logger.Log.WithError(err).Error("Failed to check if metrics file exists")
-		return err
+		return fmt.Errorf("failed to check if file exists at path %s: %w", s.fileStoragePath, err)
 	}
 	return nil
 }
