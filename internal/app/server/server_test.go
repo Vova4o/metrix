@@ -2,7 +2,6 @@ package appserver
 
 import (
 	"errors"
-	"fmt"
 	"net"
 	"testing"
 	"time"
@@ -69,17 +68,17 @@ func TestFileStorage(t *testing.T) {
 		// Reset the hook
 		hook.Reset()
 		// Simulate no error
-		var err error = nil
-
-		// Call the function that logs the error
+		err := errors.New("test error")
 		if err != nil {
 			log.WithError(err).Error("Failed to create new file storage")
-		} else {
-			fmt.Println("Not using file storage")
 		}
 
 		// Check if the error was not logged
 		entries := hook.AllEntries()
-		assert.Empty(t, entries, "An error was logged")
+		if err != nil {
+			assert.NotEmpty(t, entries, "No error was logged")
+		} else {
+			assert.Empty(t, entries, "An error was logged")
+		}
 	})
 }
