@@ -14,7 +14,7 @@ import (
 var templates embed.FS
 
 // ShowMetrics is an HTTP handler that shows all the metrics
-func ShowMetrics(storage storage.StorageInterface, tempFile string) http.HandlerFunc {
+func ShowMetrics(storage storage.Storager, tempFile string) http.HandlerFunc {
 	// Parse the template file
 	tmpl, errFunc := ParseTemplate(tempFile)
 	if errFunc != nil {

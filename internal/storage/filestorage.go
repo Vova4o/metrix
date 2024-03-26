@@ -16,7 +16,14 @@ type FileStorage struct {
 	restore         bool
 }
 
-func NewFileStorage(memStorage *MemStorage, storeInterval int, fileStoragePath string, restore bool) (*FileStorage, error) {
+func NewFileStorage(memStorager Storager, storeInterval int, fileStoragePath string, restore bool) (*FileStorage, error) {
+	memStorage, ok := memStorager.(*MemStorage)
+	if !ok {
+		err := fmt.Errorf("expected *storage.MemStorage type")
+		logger.Log.Logger.Errorf(err.Error())
+		return nil, err
+	}
+	
 	fs := &FileStorage{
 		memStorage:      memStorage,
 		storeInterval:   storeInterval,
@@ -137,22 +144,17 @@ func (s *FileStorage) SaveToFile() error {
 }
 
 func (s *FileStorage) saveAtInterval() {
-	ticker := time.NewTicker(time.Duration(s.storeInterval) * time.Second)
-	defer ticker.Stop()
+    ticker := time.NewTicker(time.Duration(s.storeInterval) * time.Second)
+    defer ticker.Stop()
 
-	quit := make(chan struct{})
-	defer close(quit)
-
-	for {
-		select {
-		case <-ticker.C:
-			if err := s.SaveToFile(); err != nil {
-				logger.Log.Logger.WithError(err).Error("Failed to save metrics to file")
-			}
-		case <-quit:
-			return
-		}
-	}
+    for {
+        select {
+        case <-ticker.C:
+            if err := s.SaveToFile(); err != nil {
+                logger.Log.Logger.WithError(err).Error("Failed to save metrics to file")
+            }
+        }
+    }
 }
 
 // Implement StorageInterface methods by delegating to memStorage

@@ -29,9 +29,14 @@ func NewServer() error {
 	defer log.CloseLogger()
 
 	// Create a new MemStorage
-	memStorage := storage.NewMemStorage()
+	memStorager := storage.NewMemStorage()
 
-	fmt.Println(serverflags.GetFileStoragePath())
+	memStorage, ok := memStorager.(*storage.MemStorage)
+	if !ok {
+		log.Logger.WithError(err).Error("Expected *storage.MemStorage type")
+		return err
+	}
+
 	var fileStorage *storage.FileStorage
 	if serverflags.GetFileStoragePath() != "" {
 		fileStorage, err = storage.NewFileStorage(memStorage, serverflags.GetStoreInterval(), serverflags.GetFileStoragePath(), serverflags.GetRestore())

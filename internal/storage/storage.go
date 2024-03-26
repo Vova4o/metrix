@@ -1,6 +1,6 @@
 package storage
 
-type StorageInterface interface {
+type Storager interface {
 	SetGauge(key string, value float64)
 	GetGauge(key string) (float64, bool)
 	SetCounter(key string, value int64)

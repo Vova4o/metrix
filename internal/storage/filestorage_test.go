@@ -49,7 +49,12 @@ func TestNewFileStorage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			memStorage := NewMemStorage()
+			memStorager := NewMemStorage()
+
+			memStorage, ok := memStorager.(*MemStorage)
+			if !ok {
+				t.Errorf("Expected *MemStorage, got %T", memStorager)
+			} 
 
 			_, err := NewFileStorage(memStorage, tt.storeInterval, tt.fileStoragePath, tt.restore)
 			if (err != nil) != tt.wantErr {
@@ -90,7 +95,12 @@ func TestFileStorage_LoadFromFile_SaveToFile(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			memStorage := NewMemStorage()
+			memStorager := NewMemStorage()
+
+			memStorage, ok := memStorager.(*MemStorage)
+			if !ok {
+				t.Errorf("Expected *MemStorage, got %T", memStorager)
+			}
 
 			fs, err := NewFileStorage(memStorage, tt.storeInterval, tt.fileStoragePath, tt.restore)
 			if err != nil {
@@ -151,7 +161,13 @@ func TestFileStorage(t *testing.T) {
 	time.Sleep(2 * time.Second)
 
 	// Create a new instance of FileStorage
-	memStorage := NewMemStorage()
+	memStorager := NewMemStorage()
+
+	memStorage, ok := memStorager.(*MemStorage)
+	if !ok {
+		t.Errorf("Expected *MemStorage, got %T", memStorager)
+	}
+
 	fs1, err := NewFileStorage(memStorage, 1, "/tmp/test-metrics-db.json", true)
 	if err != nil {
 		t.Fatal(err)

@@ -11,12 +11,12 @@ import (
 	"Vova4o/metrix/internal/storage"
 )
 
-func MetricValue(storage storage.StorageInterface) http.HandlerFunc {
+func MetricValue(storage storage.Storager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		metricType := chi.URLParam(r, "metricType")
 		metricName := chi.URLParam(r, "metricName")
 
-		var mt MetricType
+		var mt Metricer
 		switch metricType {
 		case "gauge":
 			mt = GaugeMetricType{}
@@ -40,7 +40,7 @@ func MetricValue(storage storage.StorageInterface) http.HandlerFunc {
 	}
 }
 
-func MetricValueJSON(storage storage.StorageInterface) http.HandlerFunc {
+func MetricValueJSON(storage storage.Storager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var metrics MetricsJSON
 
@@ -51,7 +51,7 @@ func MetricValueJSON(storage storage.StorageInterface) http.HandlerFunc {
 			return
 		}
 
-		var mt MetricType
+		var mt Metricer
 		switch metrics.MType {
 		case "gauge":
 			mt = GaugeMetricType{}

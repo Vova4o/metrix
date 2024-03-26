@@ -18,7 +18,7 @@ type MemStorage struct {
 // NewMemStorage creates a new MemStorage
 // and returns a pointer to it
 // GaugeMetrics and CounterMetrics are initialized as empty maps
-func NewMemStorage() *MemStorage {
+func NewMemStorage() Storager {
 	return &MemStorage{
 		GaugeMetrics:   make(map[string]float64),
 		CounterMetrics: make(map[string]int64),

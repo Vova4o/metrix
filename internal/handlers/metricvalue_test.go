@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -135,6 +137,90 @@ func TestMetricValueNotFound(t *testing.T) {
 
 			// Check the status code
 			assert.Equal(t, tt.wantStatus, rr.Code)
+		})
+	}
+}
+
+func TestMetricValueJson(t *testing.T) {
+	tests := []struct {
+		name       string
+		metricType string
+		metricName string
+		setValue   float64
+		wantStatus int
+		wantBody   string
+	}{
+		{
+			name:       "Test gauge metric",
+			metricType: "gauge",
+			metricName: "test",
+			setValue:   10.0,
+			wantStatus: http.StatusOK,
+			wantBody:   `{"id":"test","type":"gauge","value":10}`,
+		},
+		{
+			name:       "Test counter metric",
+			metricType: "counter",
+			metricName: "test",
+			setValue:   10.0,
+			wantStatus: http.StatusOK,
+			wantBody:   `{"id":"test","type":"counter","delta":10}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// define a storage with a metric
+			storage := storage.NewMemStorage()
+
+			if tt.metricType == "gauge" {
+				storage.SetGauge(tt.metricName, tt.setValue)
+			} else if tt.metricType == "counter" {
+				storage.SetCounter(tt.metricName, int64(tt.setValue))
+			}
+
+			// Create a MetricsJSON object
+			metrics := MetricsJSON{
+				ID:    tt.metricName,
+				MType: tt.metricType,
+			}
+
+			// Marshal the MetricsJSON object to a JSON string
+			requestBody, err := json.Marshal(metrics)
+			assert.NoError(t, err)
+
+			// Create a request to pass to our handler
+			handler := MetricValueJSON(storage)
+
+			// Create a new HTTP request
+			req, err := http.NewRequest("POST", "", bytes.NewBuffer(requestBody))
+			// Check if there was an error creating the request
+			assert.NoError(t, err)
+
+			// Create a ResponseRecorder to record the response
+			rr := httptest.NewRecorder()
+			// Call ServeHTTP method directly and pass in our Request and ResponseRecorder
+			handler.ServeHTTP(rr, req)
+
+			// Check the status code
+			assert.Equal(t, tt.wantStatus, rr.Code)
+
+			// Unmarshal the expected body into a map
+			var expectedBody map[string]interface{}
+			err = json.Unmarshal([]byte(tt.wantBody), &expectedBody)
+			if err != nil {
+				t.Errorf("unexpected error: %s", err)
+			}
+
+			// Unmarshal the actual body into a map
+			var actualBody map[string]interface{}
+			err = json.Unmarshal(rr.Body.Bytes(), &actualBody)
+			if err != nil {
+				t.Errorf("unexpected error: %s", err)
+			}
+
+			// Compare the maps
+			assert.Equal(t, expectedBody, actualBody, "handler returned unexpected body")
 		})
 	}
 }
