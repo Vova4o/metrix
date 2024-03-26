@@ -1,6 +1,7 @@
 package clientmetrics
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -20,7 +21,16 @@ func (m *MockRestClient) R() *resty.Request {
 }
 
 func setup() {
-	logger.Log, _ = logger.NewLogger("test.log")
+	err := logger.New("test.log")
+	if err != nil {
+		logger.Log.WithError(err).Error("Failed to initialize logger")
+	}
+
+	defer func() {
+		if err := logger.Close(); err != nil {
+			fmt.Printf("Failed to close log file: %v\n", err)
+		}
+	}()
 }
 
 func TestSendMetric(t *testing.T) {

@@ -1,43 +1,32 @@
 package logger
 
 import (
-    "testing"
+	"os"
+	"testing"
+
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestFileLogger(t *testing.T) {
-    type args struct {
-        name string
-    }
-    tests := []struct {
-        name    string
-        args    args
-        wantErr bool
-    }{
-        {
-            name: "Valid file name",
-            args: args{
-                name: "test.log",
-            },
-            wantErr: false,
-        },
-        {
-            name: "Invalid file name",
-            args: args{
-                name: "/nonexistent/test.log",
-            },
-            wantErr: true,
-        },
-    }
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            got, err := NewLogger(tt.args.name)
-            if (err != nil) != tt.wantErr {
-                t.Errorf("NewFileLogger() error = %v, wantErr %v", err, tt.wantErr)
-                return
-            }
-            if got != nil {
-                defer got.CloseLogger()
-            }
-        })
-    }
+func TestNew(t *testing.T) {
+	// Create a temporary log file for testing
+	logFile := "test.log"
+	defer os.Remove(logFile)
+
+	err := New(logFile)
+	assert.NoError(t, err)
+
+	// Check if the log file is created
+	_, err = os.Stat(logFile)
+	assert.NoError(t, err)
+
+	// Open the log file
+	file, err := os.Open(logFile)
+	assert.NoError(t, err)
+	defer file.Close()
+
+	// Check if the logrus logger is properly configured
+	assert.IsType(t, &logrus.Logger{}, Log)
+	assert.Equal(t, file.Name(), logFile)
+	assert.IsType(t, &logrus.JSONFormatter{}, Log.Formatter)
 }

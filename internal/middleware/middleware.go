@@ -1,4 +1,4 @@
-package middleware
+package mw
 
 import (
 	"compress/gzip"
@@ -17,29 +17,25 @@ type gzipWriter struct {
 	Writer *gzip.Writer
 }
 
-func RequestLogger(logger *logger.FileLogger) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		fn := func(w http.ResponseWriter, r *http.Request) {
-			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+func RequestLogger(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
 
-			start := time.Now()
+		start := time.Now()
 
-			defer func() {
-				duration := time.Since(start)
-				logger.Logger.WithFields(logrus.Fields{
-					"status":   ww.Status(),
-					"method":   r.Method,
-					"path":     r.URL.Path,
-					"duration": duration.String(),
-					"size":     ww.BytesWritten(),
-				}).Info("Handled request")
-			}()
+		defer func() {
+			duration := time.Since(start)
+			logger.Log.WithFields(logrus.Fields{
+				"status":   ww.Status(),
+				"method":   r.Method,
+				"path":     r.URL.Path,
+				"duration": duration.String(),
+				"size":     ww.BytesWritten(),
+			}).Info("Handled request")
+		}()
 
-			next.ServeHTTP(ww, r)
-		}
-
-		return http.HandlerFunc(fn)
-	}
+		next.ServeHTTP(ww, r)
+	})
 }
 
 func (w gzipWriter) Write(b []byte) (int, error) {

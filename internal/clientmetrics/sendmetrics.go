@@ -50,13 +50,13 @@ func (t *TextMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 		SetHeader("Content-Type", "text/plain").
 		Post(fmt.Sprintf("%s/update/%s/%s/%s", baseURL, metricType, metricName, metricValue))
 	if err != nil {
-		logger.Log.Logger.WithError(err).Errorf("failed to send %s metric %s", metricType, metricName)
+		logger.Log.WithError(err).Errorf("failed to send %s metric %s", metricType, metricName)
 		return err
 	}
 
 	if resp.StatusCode() != http.StatusOK {
 		err := fmt.Errorf("server returned non-OK status for %s metric %s: %v", metricType, metricName, resp.Status())
-		logger.Log.Logger.Error(err)
+		logger.Log.Error(err)
 		return err
 	}
 
@@ -70,19 +70,19 @@ func (j *JSONMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 	if metricType == "counter" {
 		val, err := strconv.ParseInt(metricValue, 10, 64)
 		if err != nil {
-			logger.Log.Logger.Errorf("failed to parse counter value: %v", err)
+			logger.Log.Errorf("failed to parse counter value: %v", err)
 			return fmt.Errorf("failed to parse counter value: %v", err)
 		}
 		delta = &val
 	} else if metricType == "gauge" {
 		val, err := strconv.ParseFloat(metricValue, 64)
 		if err != nil {
-			logger.Log.Logger.Errorf("failed to parse gauge value: %v", err)
+			logger.Log.Errorf("failed to parse gauge value: %v", err)
 			return fmt.Errorf("failed to parse gauge value: %v", err)
 		}
 		value = &val
 	} else {
-		logger.Log.Logger.Errorf("invalid metric type: %s", metricType)
+		logger.Log.Errorf("invalid metric type: %s", metricType)
 		return fmt.Errorf("invalid metric type: %s", metricType)
 	}
 
@@ -105,7 +105,7 @@ func (j *JSONMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 	// this is how the error idealy should look like.
 	if err != nil {
 		err := fmt.Errorf("failed to marshal metric: %v", err)
-		logger.Log.Logger.Error(err)
+		logger.Log.Error(err)
 		return err
 	}
 
@@ -137,12 +137,12 @@ func (j *JSONMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 		Post(fmt.Sprintf("%s/update/", baseURL))
 		// this is how it maigh look like
 	if err != nil {
-		logger.Log.Logger.Errorf("failed to send %s metric %s: %v", metricType, metricName, err)
+		logger.Log.Errorf("failed to send %s metric %s: %v", metricType, metricName, err)
 		return fmt.Errorf("failed to send %s metric %s: %v", metricType, metricName, err)
 	}
 
 	if resp.StatusCode() != http.StatusOK {
-		logger.Log.Logger.Errorf("server returned non-OK status for %s metric %s: %v", metricType, metricName, resp.Status())
+		logger.Log.Errorf("server returned non-OK status for %s metric %s: %v", metricType, metricName, resp.Status())
 		return fmt.Errorf("server returned non-OK status for %s metric %s: %v", metricType, metricName, resp.Status())
 	}
 

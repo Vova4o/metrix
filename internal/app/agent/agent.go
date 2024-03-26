@@ -19,7 +19,7 @@ import (
 func NewAgent(ctx context.Context, client *resty.Client) error {
 	// Add a middleware logger
 	client.OnBeforeRequest(func(client *resty.Client, request *resty.Request) error {
-		logger.Log.Logger.WithFields(logrus.Fields{
+		logger.Log.WithFields(logrus.Fields{
 			"url": request.URL,
 		}).Info("Sending request")
 
@@ -27,7 +27,7 @@ func NewAgent(ctx context.Context, client *resty.Client) error {
 	})
 
 	client.OnAfterResponse(func(client *resty.Client, response *resty.Response) error {
-		logger.Log.Logger.WithFields(logrus.Fields{
+		logger.Log.WithFields(logrus.Fields{
 			"status": response.StatusCode(),
 			"body":   response.String(),
 		}).Info("Received response")
@@ -49,11 +49,11 @@ func runMetricsLoop(ctx context.Context, metrics *clientmetrics.Metrics) {
 			return
 		case <-metrics.PollTicker.C:
 			if err := metrics.PollMetrics(); err != nil {
-				logger.Log.Logger.WithError(err).Error("Failed to poll metrics")
+				logger.Log.WithError(err).Error("Failed to poll metrics")
 			}
 		case <-metrics.ReportTicker.C:
 			if err := metrics.ReportMetrics(metrics.BaseURL); err != nil {
-				logger.Log.Logger.WithError(err).Error("Failed to report metrics")
+				logger.Log.WithError(err).Error("Failed to report metrics")
 			}
 		}
 	}

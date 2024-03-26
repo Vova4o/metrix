@@ -2,24 +2,30 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/go-resty/resty/v2"
 
 	appagent "Vova4o/metrix/internal/app/agent"
-	"Vova4o/metrix/internal/config"
 	"Vova4o/metrix/internal/logger"
 )
 
-func main() {
-	// Open a file for logging
-	_, err := logger.NewLogger(config.AgentLogFile)
-	if err != nil {
-		log.Fatalf("Failed to create logger: %v", err)
-	}
-	defer logger.Log.CloseLogger()
+const (
+	agentLogFile = "agent.log"
+)
 
-	logger.Log.SetOutput()
+func main() {
+	err := logger.New(agentLogFile)
+	if err != nil {
+		logger.Log.WithError(err).Error("Failed to initialize logger")
+	}
+
+	defer func() {
+		if err := logger.Close(); err != nil {
+			fmt.Printf("Failed to close log file: %v\n", err)
+		}
+	}()
 
 	ctx := context.Background()
 	client := resty.New()

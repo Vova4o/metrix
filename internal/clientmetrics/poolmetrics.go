@@ -3,7 +3,6 @@ package clientmetrics
 import (
 	"errors"
 	"fmt"
-	"log"
 	"math/rand"
 	"runtime"
 	"strconv"
@@ -92,10 +91,10 @@ func (ma *Metrics) ReportMetrics(baseURL string) error {
 	reportMetric := func(metricType, name, value string) {
 		defer wg.Done()
 		if err := ma.TextSender.SendMetric(ma.Client, metricType, name, value, baseURL); err != nil {
-			logger.Log.Logger.Errorf("error sending %s metric %s: %v", metricType, name, err)
+			logger.Log.Errorf("error sending %s metric %s: %v", metricType, name, err)
 		}
 		if err := ma.JSONSender.SendMetric(ma.Client, metricType, name, value, baseURL); err != nil {
-			logger.Log.Logger.Errorf("error sending %s metric %s: %v", metricType, name, err)
+			logger.Log.Errorf("error sending %s metric %s: %v", metricType, name, err)
 		}
 	}
 
@@ -115,7 +114,7 @@ func (ma *Metrics) ReportMetrics(baseURL string) error {
 	}()
 
 	for err := range errs {
-		log.Println(err)
+		logger.Log.Println(err)
 	}
 
 	return nil
