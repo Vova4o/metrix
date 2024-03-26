@@ -147,14 +147,11 @@ func (s *FileStorage) saveAtInterval() {
     ticker := time.NewTicker(time.Duration(s.storeInterval) * time.Second)
     defer ticker.Stop()
 
-    for {
-        select {
-        case <-ticker.C:
-            if err := s.SaveToFile(); err != nil {
-                logger.Log.Logger.WithError(err).Error("Failed to save metrics to file")
-            }
-        }
-    }
+    for range ticker.C {
+		if err := s.SaveToFile(); err != nil {
+			logger.Log.Logger.WithError(err).Error("Failed to save metrics to file")
+		}
+	}
 }
 
 // Implement StorageInterface methods by delegating to memStorage
