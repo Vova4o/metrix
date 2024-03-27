@@ -1,4 +1,4 @@
-package mw
+package middleware
 
 import (
 	"compress/gzip"
@@ -6,46 +6,75 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"Vova4o/metrix/internal/logger"
+
+	"github.com/sirupsen/logrus/hooks/test"
 )
 
-// func TestRequestLogger(t *testing.T) {
-//     // Create a test hook for the logger
-//     hook := test.NewLocal(logger.Log)
+func TestRequestLogger(t *testing.T) {
+	// Create a test logger
+	_ = logger.New("test.log")
 
-//     // Create a test handler
-//     nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//         w.Write([]byte("OK"))
-//     })
+	// Create a test hook for the logger
+	hook := test.NewLocal(logger.Log)
 
-//     // Wrap the handler with the RequestLogger middleware
-//     handler := middleware.RequestLogger(nextHandler)
+	// Create a test handler
+	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r == nil {
+			t.Error("Request is nil")
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	})
 
-//     // Create a test request
-//     req, err := http.NewRequest("GET", "/test", nil)
-//     if err != nil {
-//         t.Fatalf("Failed to create request: %v", err)
-//     }
+	// Wrap the handler with the RequestLogger middleware
+	handler := RequestLogger(nextHandler)
 
-//     // Record the response
-//     rr := httptest.NewRecorder()
-//     handler.ServeHTTP(rr, req)
+	// Create a test request
+	req, err := http.NewRequest("GET", "/test", nil)
+	if err != nil {
+		t.Fatalf("Failed to create request: %v", err)
+	}
 
-//     // Check the response status code
-//     assert.Equal(t, http.StatusOK, rr.Code)
+	// Record the response
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
 
-//     // Check the response body
-//     assert.Equal(t, "OK", rr.Body.String())
+	// Check the response status code
+	if rr.Code != http.StatusOK {
+		t.Errorf("Expected status code %d, but got %d", http.StatusOK, rr.Code)
+	}
 
-//     // Check the log entry
-//     assert.Equal(t, 1, len(hook.Entries))
-//     entry := hook.LastEntry()
-//     assert.Equal(t, "Handled request", entry.Message)
-//     assert.Equal(t, "/test", entry.Data["path"])
-//     assert.Equal(t, "GET", entry.Data["method"])
-//     assert.Equal(t, http.StatusOK, entry.Data["status"])
-//     assert.Contains(t, entry.Data["duration"], "ms")
-//     assert.Equal(t, 2, entry.Data["size"])
-// }
+	// Check the response body
+	if rr.Body.String() != "OK" {
+		t.Errorf("Expected response body %q, but got %q", "OK", rr.Body.String())
+	}
+
+	// Check the log entry
+	if len(hook.Entries) != 1 {
+		t.Errorf("Expected 1 log entry, but got %d", len(hook.Entries))
+	}
+	entry := hook.LastEntry()
+	if entry.Message != "Handled request" {
+		t.Errorf("Expected log message %q, but got %q", "Handled request", entry.Message)
+	}
+	if entry.Data["path"] != "/test" {
+		t.Errorf("Expected path %q, but got %q", "/test", entry.Data["path"])
+	}
+	if entry.Data["method"] != "GET" {
+		t.Errorf("Expected method %q, but got %q", "GET", entry.Data["method"])
+	}
+	if entry.Data["status"] != http.StatusOK {
+		t.Errorf("Expected status %d, but got %v", http.StatusOK, entry.Data["status"])
+	}
+	if _, ok := entry.Data["duration"]; !ok {
+		t.Error("Duration key is missing in log entry")
+	}
+	if entry.Data["size"] != 2 {
+		t.Errorf("Expected size %d, but got %v", 2, entry.Data["size"])
+	}
+}
 
 func TestGzipMiddleware(t *testing.T) {
 	// Create a GzipMiddleware
