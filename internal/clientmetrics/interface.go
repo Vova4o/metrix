@@ -1,6 +1,7 @@
 package clientmetrics
 
 import (
+	"sync"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -33,6 +34,7 @@ type MetricsClient interface {
 }
 
 type Metrics struct {
+	mu             sync.Mutex
 	GaugeMetrics   map[string]float64 `json:"gauge"`
 	CounterMetrics map[string]int64   `json:"counter"`
 	Client         *resty.Client

@@ -4,6 +4,18 @@ import (
 	"sync"
 )
 
+
+type Storager interface {
+	SetGauge(key string, value float64)
+	GetGauge(key string) (float64, bool)
+	SetCounter(key string, value int64)
+	GetCounter(key string) (int64, bool)
+	// Delete(key string)
+	GetAllGauges() map[string]float64
+	GetAllCounters() map[string]int64
+	GetAllMetrics() map[string]interface{}
+}
+
 // MemStorage is a simple in-memory storage
 // that implements the StorageInterface
 // It uses a mutex to synchronize access to the maps

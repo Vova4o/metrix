@@ -29,6 +29,8 @@ func NewMetrics(client *resty.Client) *Metrics {
 }
 
 func (ma *Metrics) PollMetrics() error {
+	ma.mu.Lock()
+	defer ma.mu.Unlock()
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
 
@@ -69,6 +71,9 @@ func (ma *Metrics) PollMetrics() error {
 }
 
 func (ma *Metrics) ReportMetrics(baseURL string) error {
+	ma.mu.Lock()
+	defer ma.mu.Unlock()
+	
 	if ma.GaugeMetrics == nil {
 		return errors.New("random value is nil")
 	}

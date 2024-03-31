@@ -33,6 +33,7 @@ func NewServer() error {
 		defer fileStorage.SaveToFile() // Save metrics to file on exit
 	} else {
 		fmt.Println("Not using file storage")
+		logger.Log.Info("Not using file storage")
 	}
 
 	mux.Use(mw.RequestLogger)

@@ -149,31 +149,31 @@ func (s *FileStorage) saveAtInterval() {
 	}
 }
 
-// Implement StorageInterface methods by delegating to memStorage
-func (s *FileStorage) SetGauge(key string, value float64) {
-	s.Storager.SetGauge(key, value)
-}
+// // Implement StorageInterface methods by delegating to memStorage
+// func (s *FileStorage) SetGauge(key string, value float64) {
+// 	s.Storager.SetGauge(key, value)
+// }
 
-func (s *FileStorage) GetGauge(key string) (float64, bool) {
-	return s.Storager.GetGauge(key)
-}
+// func (s *FileStorage) GetGauge(key string) (float64, bool) {
+// 	return s.Storager.GetGauge(key)
+// }
 
-func (s *FileStorage) SetCounter(key string, value int64) {
-	s.Storager.SetCounter(key, value)
-}
+// func (s *FileStorage) SetCounter(key string, value int64) {
+// 	s.Storager.SetCounter(key, value)
+// }
 
-func (s *FileStorage) GetCounter(key string) (int64, bool) {
-	return s.Storager.GetCounter(key)
-}
+// func (s *FileStorage) GetCounter(key string) (int64, bool) {
+// 	return s.Storager.GetCounter(key)
+// }
 
-func (s *FileStorage) GetAllGauges() map[string]float64 {
-	return s.Storager.GetAllGauges()
-}
+// func (s *FileStorage) GetAllGauges() map[string]float64 {
+// 	return s.Storager.GetAllGauges()
+// }
 
-func (s *FileStorage) GetAllCounters() map[string]int64 {
-	return s.Storager.GetAllCounters()
-}
+// func (s *FileStorage) GetAllCounters() map[string]int64 {
+// 	return s.Storager.GetAllCounters()
+// }
 
-func (s *FileStorage) GetAllMetrics() map[string]interface{} {
-	return s.Storager.GetAllMetrics()
-}
+// func (s *FileStorage) GetAllMetrics() map[string]interface{} {
+// 	return s.Storager.GetAllMetrics()
+// }

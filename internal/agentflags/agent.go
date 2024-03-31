@@ -3,6 +3,7 @@ package agentflags
 import (
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -52,9 +53,19 @@ func GetServerAddress() string {
 }
 
 func GetReportInterval() int {
-	return viper.GetInt("ReportInterval")
+	reportIntervalStr := os.Getenv("REPORT_INTERVAL")
+	reportInterval, err := strconv.Atoi(reportIntervalStr)
+	if err != nil || reportInterval <= 0 {
+		reportInterval = 10
+	}
+	return reportInterval
 }
 
 func GetPollInterval() int {
-	return viper.GetInt("PollInterval")
+	pollIntervalStr := os.Getenv("POLL_INTERVAL")
+	pollInterval, err := strconv.Atoi(pollIntervalStr)
+	if err != nil || pollInterval <= 0 {
+		pollInterval = 2
+	}
+	return pollInterval
 }
