@@ -6,11 +6,9 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-
-	"Vova4o/metrix/internal/storage"
 )
 
-func HandleUpdateText(storage storage.Storager) http.HandlerFunc {
+func HandleUpdateText(s Storager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		metricType := chi.URLParam(r, "metricType")
 		metricName := chi.URLParam(r, "metricName")
@@ -34,7 +32,7 @@ func HandleUpdateText(storage storage.Storager) http.HandlerFunc {
 			return
 		}
 
-		mt.Store(storage, metricName, value)
+		mt.Store(s, metricName, value)
 
 		w.WriteHeader(http.StatusOK)
 	}
@@ -45,7 +43,7 @@ func logAndRespondError(w http.ResponseWriter, err error, message string, code i
 	http.Error(w, message, code)
 }
 
-func HandleUpdateJSON(storage storage.Storager) http.HandlerFunc {
+func HandleUpdateJSON(s Storager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var metrics MetricsJSON
 		err := json.NewDecoder(r.Body).Decode(&metrics)
@@ -81,10 +79,10 @@ func HandleUpdateJSON(storage storage.Storager) http.HandlerFunc {
 			return
 		}
 
-		mt.Store(storage, metrics.ID, value)
+		mt.Store(s, metrics.ID, value)
 
 		// Get the latest value from the storage
-		latestValue, ok := mt.GetValue(storage, metrics.ID)
+		latestValue, ok := mt.GetValue(s, metrics.ID)
 		if !ok {
 			http.Error(w, "Failed to get latest value", http.StatusInternalServerError)
 			return

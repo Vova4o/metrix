@@ -6,15 +6,13 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
-
-	"Vova4o/metrix/internal/storage"
 )
 
 //go:embed templates/*
 var templates embed.FS
 
 // ShowMetrics is an HTTP handler that shows all the metrics
-func ShowMetrics(storage storage.Storager, tempFile string) http.HandlerFunc {
+func ShowMetrics(s Storager, tempFile string) http.HandlerFunc {
 	// Parse the template file
 	tmpl, errFunc := ParseTemplate(tempFile)
 	if errFunc != nil {
@@ -27,8 +25,8 @@ func ShowMetrics(storage storage.Storager, tempFile string) http.HandlerFunc {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		// Create a map of maps to hold the metrics
 		data := map[string]interface{}{
-			"GaugeMetrics":   GaugeMetricType{}.GetAll(storage),
-			"CounterMetrics": CounterMetricType{}.GetAll(storage),
+			"GaugeMetrics":   GaugeMetricType{}.GetAll(s),
+			"CounterMetrics": CounterMetricType{}.GetAll(s),
 		}
 
 		// Execute the template with the data

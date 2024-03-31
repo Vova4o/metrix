@@ -3,17 +3,26 @@ package handlers
 import (
 	"fmt"
 	"strconv"
-
-	"Vova4o/metrix/internal/storage"
 )
+
+type Storager interface {
+	SetGauge(key string, value float64)
+	GetGauge(key string) (float64, bool)
+	SetCounter(key string, value int64)
+	GetCounter(key string) (int64, bool)
+	// Delete(key string)
+	GetAllGauges() map[string]float64
+	GetAllCounters() map[string]int64
+	GetAllMetrics() map[string]interface{}
+}
 
 // MetricType is an interface for metric types
 type Metricer interface {
 	ParseValue(string) (interface{}, error)
-	GetValue(storage.Storager, string) (interface{}, bool)
+	GetValue(Storager, string) (interface{}, bool)
 	FormatValue(interface{}) string
-	Store(storage.Storager, string, interface{})
-	GetAll(storage.Storager) map[string]interface{}
+	Store(Storager, string, interface{})
+	GetAll(Storager) map[string]interface{}
 }
 
 type GaugeMetricType struct{}
@@ -33,8 +42,8 @@ type MetricUpdate struct {
 	Value string `json:"value"`
 }
 
-func (g GaugeMetricType) GetAll(storage storage.Storager) map[string]interface{} {
-	gauges := storage.GetAllGauges()
+func (g GaugeMetricType) GetAll(s Storager) map[string]interface{} {
+	gauges := s.GetAllGauges()
 	result := make(map[string]interface{}, len(gauges))
 	for k, v := range gauges {
 		result[k] = v
@@ -42,8 +51,8 @@ func (g GaugeMetricType) GetAll(storage storage.Storager) map[string]interface{}
 	return result
 }
 
-func (c CounterMetricType) GetAll(storage storage.Storager) map[string]interface{} {
-	counters := storage.GetAllCounters()
+func (c CounterMetricType) GetAll(s Storager) map[string]interface{} {
+	counters := s.GetAllCounters()
 	result := make(map[string]interface{}, len(counters))
 	for k, v := range counters {
 		result[k] = v
@@ -55,28 +64,32 @@ func (g GaugeMetricType) ParseValue(value string) (interface{}, error) {
 	return strconv.ParseFloat(value, 64)
 }
 
-func (g GaugeMetricType) Store(storage storage.Storager, name string, value interface{}) {
-	storage.SetGauge(name, value.(float64))
+func (g GaugeMetricType) Store(s Storager, name string, value interface{}) {
+	s.SetGauge(name, value.(float64))
 }
 
 func (c CounterMetricType) ParseValue(value string) (interface{}, error) {
-	return strconv.ParseInt(value, 10, 64)
+	intValue, err := strconv.Atoi(value)
+    if err != nil {
+        return nil, err
+    }
+    return intValue, nil
 }
 
-func (c CounterMetricType) Store(storage storage.Storager, name string, value interface{}) {
-	storage.SetCounter(name, value.(int64))
+func (c CounterMetricType) Store(s Storager, name string, value interface{}) {
+	s.SetCounter(name, value.(int64))
 }
 
-func (g GaugeMetricType) GetValue(storage storage.Storager, name string) (interface{}, bool) {
-	return storage.GetGauge(name)
+func (g GaugeMetricType) GetValue(s Storager, name string) (interface{}, bool) {
+	return s.GetGauge(name)
 }
 
 func (g GaugeMetricType) FormatValue(value interface{}) string {
 	return strconv.FormatFloat(value.(float64), 'f', -1, 64)
 }
 
-func (c CounterMetricType) GetValue(storage storage.Storager, name string) (interface{}, bool) {
-	return storage.GetCounter(name)
+func (c CounterMetricType) GetValue(s Storager, name string) (interface{}, bool) {
+	return s.GetCounter(name)
 }
 
 func (c CounterMetricType) FormatValue(value interface{}) string {

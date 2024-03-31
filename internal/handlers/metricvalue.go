@@ -7,11 +7,9 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-
-	"Vova4o/metrix/internal/storage"
 )
 
-func MetricValue(storage storage.Storager) http.HandlerFunc {
+func MetricValue(s Storager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		metricType := chi.URLParam(r, "metricType")
 		metricName := chi.URLParam(r, "metricName")
@@ -28,7 +26,7 @@ func MetricValue(storage storage.Storager) http.HandlerFunc {
 			return
 		}
 
-		value, exists := mt.GetValue(storage, metricName)
+		value, exists := mt.GetValue(s, metricName)
 		if !exists {
 			http.Error(w, "Metric not found", http.StatusNotFound)
 			return
@@ -40,7 +38,7 @@ func MetricValue(storage storage.Storager) http.HandlerFunc {
 	}
 }
 
-func MetricValueJSON(storage storage.Storager) http.HandlerFunc {
+func MetricValueJSON(s Storager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var metrics MetricsJSON
 
@@ -63,7 +61,7 @@ func MetricValueJSON(storage storage.Storager) http.HandlerFunc {
 			return
 		}
 
-		value, exists := mt.GetValue(storage, metrics.ID)
+		value, exists := mt.GetValue(s, metrics.ID)
 		if !exists {
 			http.Error(w, "Metric not found", http.StatusNotFound)
 			return
