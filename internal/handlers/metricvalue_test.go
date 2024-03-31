@@ -175,7 +175,7 @@ func TestMetricValueJSON(t *testing.T) {
 					t.Errorf("expected %v, got %v", expectedBody, gotBody)
 				}
 			} else {
-				gotBody := strings.Trim(string(rr.Body.Bytes()), "\n")
+				gotBody := strings.Trim(rr.Body.String(), "\n")
 				if fmt.Sprintf("%q", gotBody) != tt.expectedBody {
 					t.Errorf("expected %v, got %v", tt.expectedBody, fmt.Sprintf("%q", gotBody))
 				}
