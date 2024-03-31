@@ -88,19 +88,35 @@ func TestMemStorage_GetGauge(t *testing.T) {
 }
 
 func TestMemStorage_SetCounter(t *testing.T) {
+    testCases := []struct {
+        name     string
+        counter  string
+        value    int64
+        expected int64
+    }{
+        {"Test1", "counter", 10, 10},
+		{"Test2", "counter", 20, 30},
+        // Add more test cases here...
+    }
+	
 	ms := NewMemStorage()
 
-	// Call the SetCounter method
-	ms.SetCounter("counter1", 10)
+    for _, tc := range testCases {
+        t.Run(tc.name, func(t *testing.T) {
 
-	// Check the value of the counter metric
-	value, exists := ms.GetCounter("counter1")
-	if value != 10 {
-		t.Errorf("expected %v, got %v", 10, value)
-	}
-	if !exists {
-		t.Errorf("expected %v, got %v", true, exists)
-	}
+            // Call the SetCounter method
+            ms.SetCounter(tc.counter, tc.value)
+
+            // Check the value of the counter metric
+            value, exists := ms.GetCounter(tc.counter)
+            if value != tc.expected {
+                t.Errorf("expected %v, got %v", tc.expected, value)
+            }
+            if !exists {
+                t.Errorf("expected %v, got %v", true, exists)
+            }
+        })
+    }
 }
 
 func TestMemStorage_GetCounter(t *testing.T) {

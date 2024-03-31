@@ -69,11 +69,7 @@ func (g GaugeMetricType) Store(s Storager, name string, value interface{}) {
 }
 
 func (c CounterMetricType) ParseValue(value string) (interface{}, error) {
-	intValue, err := strconv.Atoi(value)
-    if err != nil {
-        return nil, err
-    }
-    return intValue, nil
+	return strconv.ParseInt(value, 10, 64)
 }
 
 func (c CounterMetricType) Store(s Storager, name string, value interface{}) {

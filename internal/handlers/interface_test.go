@@ -132,7 +132,7 @@ func TestCounterMetricType_ParseValue(t *testing.T) {
     if err != nil {
         t.Errorf("unexpected error: %v", err)
     }
-    intValue, ok := value.(int) // assert that value is an int
+    intValue, ok := value.(int64)
     if !ok {
         t.Errorf("value is not an int: %v", value)
     } else if intValue != 100 {

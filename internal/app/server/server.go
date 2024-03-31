@@ -6,9 +6,9 @@ import (
 
 	"Vova4o/metrix/internal/handlers"
 	"Vova4o/metrix/internal/logger"
+	mw "Vova4o/metrix/internal/middleware"
 	"Vova4o/metrix/internal/serverflags"
 	"Vova4o/metrix/internal/storage"
-	mw "Vova4o/metrix/internal/middleware"
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
