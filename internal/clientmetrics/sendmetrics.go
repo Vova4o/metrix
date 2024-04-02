@@ -17,6 +17,8 @@ import (
 )
 
 func (t *TextMetricSender) SendMetric(client *resty.Client, metricType, metricName, metricValue, baseURL string) error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
 	if client == nil {
 		return errors.New("client is nil")
 	}
@@ -64,6 +66,8 @@ func (t *TextMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 }
 
 func (j *JSONMetricSender) SendMetric(client *resty.Client, metricType, metricName, metricValue, baseURL string) error {
+	j.mu.Lock()
+	defer j.mu.Unlock()
 	var delta *int64
 	var value *float64
 

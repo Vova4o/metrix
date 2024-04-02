@@ -2,60 +2,55 @@ package middleware
 
 import (
 	"compress/gzip"
-	"net/http"
 	"strings"
 	"time"
 
 	"Vova4o/metrix/internal/logger"
 
-	"github.com/go-chi/chi/middleware"
+	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
 type gzipWriter struct {
-	http.ResponseWriter
+	gin.ResponseWriter
 	Writer *gzip.Writer
 }
 
-func RequestLogger(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
-
+func RequestLogger() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		start := time.Now()
 
-		defer func() {
-			duration := time.Since(start)
-			logger.Log.WithFields(logrus.Fields{
-				"status":   ww.Status(),
-				"method":   r.Method,
-				"path":     r.URL.Path,
-				"duration": duration.String(),
-				"size":     ww.BytesWritten(),
-			}).Info("Handled request")
-		}()
+		c.Next()
 
-		next.ServeHTTP(ww, r)
-	})
+		duration := time.Since(start)
+		logger.Log.WithFields(logrus.Fields{
+			"status":   c.Writer.Status(),
+			"method":   c.Request.Method,
+			"path":     c.Request.URL.Path,
+			"duration": duration.String(),
+			"size":     c.Writer.Size(),
+		}).Info("Handled request")
+	}
 }
 
 func (w gzipWriter) Write(b []byte) (int, error) {
-	// w.Writer будет отвечать за gzip-сжатие, поэтому пишем в него
 	return w.Writer.Write(b)
 }
 
 // GzipMiddleware compresses response body in gzip format if the client supports it
-func GzipMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func GzipMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		// Check if the client accepts gzip compression
-		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
-			next.ServeHTTP(w, r)
+		if !strings.Contains(c.GetHeader("Accept-Encoding"), "gzip") {
+			c.Next()
 			return
 		}
 
-		w.Header().Set("Content-Encoding", "gzip")
-		gz := gzip.NewWriter(w)
+		c.Writer.Header().Set("Content-Encoding", "gzip")
+		gz := gzip.NewWriter(c.Writer)
 		defer gz.Close()
 
-		next.ServeHTTP(gzipWriter{ResponseWriter: w, Writer: gz}, r)
-	})
+		c.Writer = &gzipWriter{ResponseWriter: c.Writer, Writer: gz}
+		c.Next()
+	}
 }

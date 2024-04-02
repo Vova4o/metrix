@@ -2,7 +2,6 @@ package appserver
 
 import (
 	"fmt"
-	"net/http"
 
 	"Vova4o/metrix/internal/handlers"
 	"Vova4o/metrix/internal/logger"
@@ -10,13 +9,14 @@ import (
 	"Vova4o/metrix/internal/serverflags"
 	"Vova4o/metrix/internal/storage"
 
-	"github.com/go-chi/chi/middleware"
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
 )
 
 func NewServer() error {
+	// Set the mode to release
+	gin.SetMode(gin.ReleaseMode)
 	// Create a new router
-	mux := chi.NewRouter()
+	router := gin.Default()
 
 	tempFile := "metrix.page.tmpl"
 
@@ -36,22 +36,20 @@ func NewServer() error {
 		logger.Log.Info("Not using file storage")
 	}
 
-	mux.Use(mw.RequestLogger)
-	mux.Use(mw.GzipMiddleware)
-	// mux.Use(middleware.Logger)
-	mux.Use(middleware.Recoverer)
+	router.Use(mw.RequestLogger(), mw.GzipMiddleware())
 
 	// Add the handlers to the router
-	mux.Post("/update/{metricType}/{metricName}/{metricValue}", handlers.HandleUpdateText(memStorager))
-	mux.Post("/update/", handlers.HandleUpdateJSON(memStorager))
+	router.POST("/update/:metricType/:metricName/:metricValue", handlers.HandleUpdateText(memStorager))
 
-	mux.Get("/", handlers.ShowMetrics(memStorager, tempFile))
+	router.POST("/update/", handlers.HandleUpdateJSON(memStorager))
 
-	mux.Get("/value/{metricType}/{metricName}", handlers.MetricValue(memStorager))
-	mux.Post("/value/", handlers.MetricValueJSON(memStorager))
+	router.GET("/", handlers.ShowMetrics(memStorager, tempFile))
+
+	router.GET("/value/:metricType/:metricName", handlers.MetricValue(memStorager))
+	router.POST("/value/", handlers.MetricValueJSON(memStorager))
 
 	fmt.Printf("Starting server on %s\n", serverflags.GetServerAddress())
 
 	// Start the server
-	return http.ListenAndServe(serverflags.GetServerAddress(), mux)
+	return router.Run(serverflags.GetServerAddress())
 }

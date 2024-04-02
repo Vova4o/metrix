@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"testing"
 )
 
@@ -9,8 +10,11 @@ type mockStorager struct {
 	counters map[string]int64
 }
 
-func (m *mockStorager) SetGauge(key string, value float64) {
-	m.gauges[key] = value
+func (m *mockStorager) SetGauge(name string, value float64) {
+	if m.gauges == nil {
+		m.gauges = make(map[string]float64)
+	}
+	m.gauges[name] = value
 }
 
 func (m *mockStorager) GetGauge(key string) (float64, bool) {
@@ -18,8 +22,11 @@ func (m *mockStorager) GetGauge(key string) (float64, bool) {
 	return value, ok
 }
 
-func (m *mockStorager) SetCounter(key string, value int64) {
-	m.counters[key] = value
+func (m *mockStorager) SetCounter(name string, value int64) {
+	if m.counters == nil {
+		m.counters = make(map[string]int64)
+	}
+	m.counters[name] = value
 }
 
 func (m *mockStorager) GetCounter(key string) (int64, bool) {
@@ -46,6 +53,28 @@ func (m *mockStorager) GetAllMetrics() map[string]interface{} {
 	return result
 }
 
+func (m *mockStorager) GetValue(metricType, metricName string) (float64, bool) {
+	if metricType == "gauge" {
+		value, ok := m.gauges[metricName]
+		return value, ok
+	} else if metricType == "counter" {
+		value, ok := m.counters[metricName]
+		return float64(value), ok
+	}
+	return 0, false
+}
+
+func (m *mockStorager) Store(key string, value interface{}) {
+	switch v := value.(type) {
+	case float64:
+		m.SetGauge(key, v)
+	case int64:
+		m.SetCounter(key, v)
+	default:
+		log.Printf("Invalid value type: %T", v)
+	}
+}
+
 func TestGaugeMetricType_GetAll(t *testing.T) {
 	mock := &mockStorager{
 		gauges: map[string]float64{
@@ -70,32 +99,32 @@ func TestGaugeMetricType_GetAll(t *testing.T) {
 }
 
 func TestCounterMetricType_GetAll(t *testing.T) {
-    mock := &mockStorager{
-        gauges: map[string]float64{},
-        counters: map[string]int64{
-            "counter1": 100,
-            "counter2": 200,
-        },
-    }
+	mock := &mockStorager{
+		gauges: map[string]float64{},
+		counters: map[string]int64{
+			"counter1": 100,
+			"counter2": 200,
+		},
+	}
 
-    c := CounterMetricType{}
-    all := c.GetAll(mock)
+	c := CounterMetricType{}
+	all := c.GetAll(mock)
 
-    if len(all) != 2 {
-        t.Errorf("expected %v, got %v", 2, len(all))
-    }
-    counter1, ok := all["counter1"].(int64) // assert that all["counter1"] is an int64
-    if !ok {
-        t.Errorf("all[\"counter1\"] is not an int64: %v", all["counter1"])
-    } else if counter1 != 100 {
-        t.Errorf("expected %v, got %v", 100, counter1)
-    }
-    counter2, ok := all["counter2"].(int64) // assert that all["counter2"] is an int64
-    if !ok {
-        t.Errorf("all[\"counter2\"] is not an int64: %v", all["counter2"])
-    } else if counter2 != 200 {
-        t.Errorf("expected %v, got %v", 200, counter2)
-    }
+	if len(all) != 2 {
+		t.Errorf("expected %v, got %v", 2, len(all))
+	}
+	counter1, ok := all["counter1"].(int64) // assert that all["counter1"] is an int64
+	if !ok {
+		t.Errorf("all[\"counter1\"] is not an int64: %v", all["counter1"])
+	} else if counter1 != 100 {
+		t.Errorf("expected %v, got %v", 100, counter1)
+	}
+	counter2, ok := all["counter2"].(int64) // assert that all["counter2"] is an int64
+	if !ok {
+		t.Errorf("all[\"counter2\"] is not an int64: %v", all["counter2"])
+	} else if counter2 != 200 {
+		t.Errorf("expected %v, got %v", 200, counter2)
+	}
 }
 
 func TestGaugeMetricType_ParseValue(t *testing.T) {
@@ -127,34 +156,34 @@ func TestGaugeMetricType_Store(t *testing.T) {
 }
 
 func TestCounterMetricType_ParseValue(t *testing.T) {
-    c := CounterMetricType{}
-    value, err := c.ParseValue("100")
-    if err != nil {
-        t.Errorf("unexpected error: %v", err)
-    }
-    intValue, ok := value.(int64)
-    if !ok {
-        t.Errorf("value is not an int: %v", value)
-    } else if intValue != 100 {
-        t.Errorf("expected %v, got %v", 100, intValue)
-    }
+	c := CounterMetricType{}
+	value, err := c.ParseValue("100")
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	intValue, ok := value.(int64)
+	if !ok {
+		t.Errorf("value is not an int: %v", value)
+	} else if intValue != 100 {
+		t.Errorf("expected %v, got %v", 100, intValue)
+	}
 }
 
 func TestCounterMetricType_Store(t *testing.T) {
-    mock := &mockStorager{
-        gauges:   map[string]float64{},
-        counters: map[string]int64{},
-    }
+	mock := &mockStorager{
+		gauges:   map[string]float64{},
+		counters: map[string]int64{},
+	}
 
-    c := CounterMetricType{}
-    c.Store(mock, "counter1", int64(100)) // convert int to int64
+	c := CounterMetricType{}
+	c.Store(mock, "counter1", int64(100)) // convert int to int64
 
-    if len(mock.counters) != 1 {
-        t.Errorf("expected %v, got %v", 1, len(mock.counters))
-    }
-    if mock.counters["counter1"] != int64(100) { // compare with int64(100)
-        t.Errorf("expected %v, got %v", int64(100), mock.counters["counter1"])
-    }
+	if len(mock.counters) != 1 {
+		t.Errorf("expected %v, got %v", 1, len(mock.counters))
+	}
+	if mock.counters["counter1"] != int64(100) { // compare with int64(100)
+		t.Errorf("expected %v, got %v", int64(100), mock.counters["counter1"])
+	}
 }
 
 func TestGaugeMetricType_GetValue(t *testing.T) {
@@ -177,25 +206,25 @@ func TestGaugeMetricType_GetValue(t *testing.T) {
 }
 
 func TestCounterMetricType_GetValue(t *testing.T) {
-    mock := &mockStorager{
-        gauges: map[string]float64{},
-        counters: map[string]int64{
-            "counter1": 100,
-        },
-    }
+	mock := &mockStorager{
+		gauges: map[string]float64{},
+		counters: map[string]int64{
+			"counter1": 100,
+		},
+	}
 
-    c := CounterMetricType{}
-    value, ok := c.GetValue(mock, "counter1")
+	c := CounterMetricType{}
+	value, ok := c.GetValue(mock, "counter1")
 
-    if !ok {
-        t.Errorf("expected %v, got %v", true, ok)
-    }
-    intValue, ok := value.(int64) // assert that value is an int64
-    if !ok {
-        t.Errorf("value is not an int64: %v", value)
-    } else if intValue != 100 {
-        t.Errorf("expected %v, got %v", 100, intValue)
-    }
+	if !ok {
+		t.Errorf("expected %v, got %v", true, ok)
+	}
+	intValue, ok := value.(int64) // assert that value is an int64
+	if !ok {
+		t.Errorf("value is not an int64: %v", value)
+	} else if intValue != 100 {
+		t.Errorf("expected %v, got %v", 100, intValue)
+	}
 }
 
 func TestGaugeMetricType_FormatValue(t *testing.T) {

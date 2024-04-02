@@ -1,18 +1,17 @@
 package handlers
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
 )
 
-func HandleUpdateText(s Storager) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		metricType := chi.URLParam(r, "metricType")
-		metricName := chi.URLParam(r, "metricName")
-		metricValue := chi.URLParam(r, "metricValue")
+func HandleUpdateText(s Storager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		metricType := c.Param("metricType")
+		metricName := c.Param("metricName")
+		metricValue := c.Param("metricValue")
 
 		var mt Metricer
 		switch metricType {
@@ -22,38 +21,34 @@ func HandleUpdateText(s Storager) http.HandlerFunc {
 			mt = CounterMetricType{}
 		default:
 			log.Printf("Invalid metric type: %s", metricType)
-			http.Error(w, "Invalid metric type", http.StatusBadRequest)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid metric type"})
 			return
 		}
 
 		value, err := mt.ParseValue(metricValue)
 		if err != nil {
-			logAndRespondError(w, err, "Invalid metric value", http.StatusBadRequest)
+			log.Printf("Invalid metric value: %v", err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid metric value"})
 			return
 		}
 
 		mt.Store(s, metricName, value)
 
-		w.WriteHeader(http.StatusOK)
+		c.Status(http.StatusOK)
 	}
 }
 
-func logAndRespondError(w http.ResponseWriter, err error, message string, code int) {
-	log.Printf("%s: %s", message, err)
-	http.Error(w, message, code)
-}
-
-func HandleUpdateJSON(s Storager) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func HandleUpdateJSON(s Storager) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		var metrics MetricsJSON
-		err := json.NewDecoder(r.Body).Decode(&metrics)
+		err := c.ShouldBindJSON(&metrics)
 		if err != nil {
-			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
 			return
 		}
 
 		if metrics.ID == "" {
-			http.Error(w, "Missing id", http.StatusBadRequest)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing id"})
 			return
 		}
 
@@ -65,7 +60,7 @@ func HandleUpdateJSON(s Storager) http.HandlerFunc {
 			if metrics.Value != nil {
 				value = *metrics.Value
 			} else {
-				http.Error(w, "Value is required for gauge type", http.StatusBadRequest)
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Value is required for gauge type"})
 				return
 			}
 		case "counter":
@@ -75,7 +70,7 @@ func HandleUpdateJSON(s Storager) http.HandlerFunc {
 			}
 		default:
 			log.Printf("Invalid metric type: %s", metrics.MType)
-			http.Error(w, "Invalid metric type", http.StatusBadRequest)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid metric type"})
 			return
 		}
 
@@ -84,7 +79,7 @@ func HandleUpdateJSON(s Storager) http.HandlerFunc {
 		// Get the latest value from the storage
 		latestValue, ok := mt.GetValue(s, metrics.ID)
 		if !ok {
-			http.Error(w, "Failed to get latest value", http.StatusInternalServerError)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get latest value"})
 			return
 		}
 
@@ -94,7 +89,7 @@ func HandleUpdateJSON(s Storager) http.HandlerFunc {
 				metrics.Delta = &val
 			} else {
 				log.Printf("Expected *int64, got %T", latestValue)
-				http.Error(w, "Internal server error", http.StatusInternalServerError)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 				return
 			}
 		} else if metrics.MType == "gauge" {
@@ -102,14 +97,11 @@ func HandleUpdateJSON(s Storager) http.HandlerFunc {
 				metrics.Value = &val
 			} else {
 				log.Printf("Expected *float64, got %T", latestValue)
-				http.Error(w, "Internal server error", http.StatusInternalServerError)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 				return
 			}
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(metrics)
-
-		w.WriteHeader(http.StatusOK)
+		c.JSON(http.StatusOK, metrics)
 	}
 }

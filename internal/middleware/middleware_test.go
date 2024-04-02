@@ -9,6 +9,7 @@ import (
 
 	"Vova4o/metrix/internal/logger"
 
+	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus/hooks/test"
 )
 
@@ -19,17 +20,13 @@ func TestRequestLogger(t *testing.T) {
 	// Create a test hook for the logger
 	hook := test.NewLocal(logger.Log)
 
-	// Create a test handler
-	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r == nil {
-			t.Error("Request is nil")
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
+	// Create a Gin engine for testing
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	engine.Use(RequestLogger())
+	engine.GET("/test", func(c *gin.Context) {
+		c.String(http.StatusOK, "OK")
 	})
-
-	// Wrap the handler with the RequestLogger middleware
-	handler := RequestLogger(nextHandler)
 
 	// Create a test request
 	req, err := http.NewRequest("GET", "/test", nil)
@@ -39,7 +36,7 @@ func TestRequestLogger(t *testing.T) {
 
 	// Record the response
 	rr := httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
+	engine.ServeHTTP(rr, req)
 
 	// Check the response status code
 	if rr.Code != http.StatusOK {
@@ -77,116 +74,84 @@ func TestRequestLogger(t *testing.T) {
 }
 
 func TestGzipMiddleware(t *testing.T) {
-	// Create a GzipMiddleware
-	middleware := GzipMiddleware
+	// Create a Gin engine for testing
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	engine.Use(GzipMiddleware())
+	engine.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "Hello, world!")
+	})
 
-	tests := []struct {
-		name       string
-		handler    http.HandlerFunc
-		wantStatus int
-		wantBody   string
-	}{
-		{
-			name: "Test handler",
-			handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.Write([]byte("Hello, world!"))
-			}),
-			wantStatus: http.StatusOK,
-			wantBody:   "Hello, world!",
-		},
-		// Add more test cases as needed
+	// Create a test request
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatalf("Failed to create request: %v", err)
+	}
+	req.Header.Set("Accept-Encoding", "gzip")
+
+	// Record the response
+	rr := httptest.NewRecorder()
+	engine.ServeHTTP(rr, req)
+
+	// Check the status code
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Wrap the test handler with the middleware
-			h := middleware(tt.handler)
+	// Check the Content-Encoding header
+	if encoding := rr.Header().Get("Content-Encoding"); encoding != "gzip" {
+		t.Errorf("handler returned wrong Content-Encoding header: got %v want %v", encoding, "gzip")
+	}
 
-			// Create a test request
-			req := httptest.NewRequest("GET", "/", nil)
-			req.Header.Set("Accept-Encoding", "gzip")
+	// Check the response body
+	reader, err := gzip.NewReader(rr.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer reader.Close()
 
-			// Record the response
-			rr := httptest.NewRecorder()
-			h.ServeHTTP(rr, req)
+	body, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-			// Check the status code
-			if status := rr.Code; status != tt.wantStatus {
-				t.Errorf("handler returned wrong status code: got %v want %v", status, tt.wantStatus)
-			}
-
-			// Check the Content-Encoding header
-			if encoding := rr.Header().Get("Content-Encoding"); encoding != "gzip" {
-				t.Errorf("handler returned wrong Content-Encoding header: got %v want %v", encoding, "gzip")
-			}
-
-			// Check the response body
-			reader, err := gzip.NewReader(rr.Body)
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer reader.Close()
-
-			body, err := io.ReadAll(reader)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			if string(body) != tt.wantBody {
-				t.Errorf("handler returned unexpected body: got %v want %v", string(body), tt.wantBody)
-			}
-		})
+	if string(body) != "Hello, world!" {
+		t.Errorf("handler returned unexpected body: got %v want %v", string(body), "Hello, world!")
 	}
 }
 
 func TestGzipMiddleware_NoGzip(t *testing.T) {
-	// Create a GzipMiddleware
-	middleware := GzipMiddleware
+	// Create a Gin engine for testing
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	engine.Use(GzipMiddleware())
+	engine.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "Hello, world!")
+	})
 
-	tests := []struct {
-		name       string
-		handler    http.HandlerFunc
-		wantStatus int
-		wantBody   string
-	}{
-		{
-			name: "Test handler",
-			handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.Write([]byte("Hello, world!"))
-			}),
-			wantStatus: http.StatusOK,
-			wantBody:   "Hello, world!",
-		},
-		// Add more test cases as needed
+	// Create a test request without the "Accept-Encoding: gzip" header
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatalf("Failed to create request: %v", err)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Wrap the test handler with the middleware
-			h := middleware(tt.handler)
+	// Record the response
+	rr := httptest.NewRecorder()
+	engine.ServeHTTP(rr, req)
 
-			// Create a test request without the "Accept-Encoding: gzip" header
-			req := httptest.NewRequest("GET", "/", nil)
+	// Check the status code
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+	}
 
-			// Record the response
-			rr := httptest.NewRecorder()
-			h.ServeHTTP(rr, req)
+	// Check the Content-Encoding header
+	if encoding := rr.Header().Get("Content-Encoding"); encoding == "gzip" {
+		t.Errorf("handler returned wrong Content-Encoding header: got %v want %v", encoding, "")
+	}
 
-			// Check the status code
-			if status := rr.Code; status != tt.wantStatus {
-				t.Errorf("handler returned wrong status code: got %v want %v", status, tt.wantStatus)
-			}
-
-			// Check the Content-Encoding header
-			if encoding := rr.Header().Get("Content-Encoding"); encoding == "gzip" {
-				t.Errorf("handler returned wrong Content-Encoding header: got %v want %v", encoding, "")
-			}
-
-			// Check the response body
-			body := rr.Body.String()
-			if body != tt.wantBody {
-				t.Errorf("handler returned unexpected body: got %v want %v", body, tt.wantBody)
-			}
-		})
+	// Check the response body
+	body := rr.Body.String()
+	if body != "Hello, world!" {
+		t.Errorf("handler returned unexpected body: got %v want %v", body, "Hello, world!")
 	}
 }

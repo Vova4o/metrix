@@ -1,18 +1,16 @@
 package handlers
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
 )
 
-func MetricValue(s Storager) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		metricType := chi.URLParam(r, "metricType")
-		metricName := chi.URLParam(r, "metricName")
+func MetricValue(s Storager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		metricType := c.Param("metricType")
+		metricName := c.Param("metricName")
 
 		var mt Metricer
 		switch metricType {
@@ -22,30 +20,28 @@ func MetricValue(s Storager) http.HandlerFunc {
 			mt = CounterMetricType{}
 		default:
 			log.Printf("Invalid metric type: %s", metricType)
-			http.Error(w, "Invalid metric type", http.StatusBadRequest)
+			c.String(http.StatusBadRequest, "Invalid metric type")
 			return
 		}
 
 		value, exists := mt.GetValue(s, metricName)
 		if !exists {
-			http.Error(w, "Metric not found", http.StatusNotFound)
+			c.String(http.StatusNotFound, "Metric not found")
 			return
 		}
 
-		w.Header().Set("Content-Type", "text/plain")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, mt.FormatValue(value))
+		c.Header("Content-Type", "text/plain")
+		c.String(http.StatusOK, mt.FormatValue(value))
 	}
 }
 
-func MetricValueJSON(s Storager) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func MetricValueJSON(s Storager) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		var metrics MetricsJSON
 
-		// Decode the JSON request body into the metrics struct
-		err := json.NewDecoder(r.Body).Decode(&metrics)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		// Bind the JSON request body into the metrics struct
+		if err := c.ShouldBindJSON(&metrics); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -57,20 +53,18 @@ func MetricValueJSON(s Storager) http.HandlerFunc {
 			mt = CounterMetricType{}
 		default:
 			log.Printf("Invalid metric type: %s", metrics.MType)
-			http.Error(w, "Invalid metric type", http.StatusBadRequest)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid metric type"})
 			return
 		}
 
 		value, exists := mt.GetValue(s, metrics.ID)
 		if !exists {
-			http.Error(w, "Metric not found", http.StatusNotFound)
+			c.JSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
 		if metrics.MType == "gauge" {
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			c.JSON(http.StatusOK, gin.H{
 				"id":    metrics.ID,
 				"type":  metrics.MType,
 				"value": value,
@@ -78,7 +72,7 @@ func MetricValueJSON(s Storager) http.HandlerFunc {
 			return
 		}
 		if metrics.MType == "counter" {
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			c.JSON(http.StatusOK, gin.H{
 				"id":    metrics.ID,
 				"type":  metrics.MType,
 				"delta": value,
