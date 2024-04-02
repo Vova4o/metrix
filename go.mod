@@ -3,7 +3,6 @@ module Vova4o/metrix
 go 1.22.0
 
 require (
-	github.com/gin-contrib/gzip v1.0.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-resty/resty/v2 v2.11.0
 	github.com/sirupsen/logrus v1.9.3

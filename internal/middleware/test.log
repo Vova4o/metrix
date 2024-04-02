@@ -3,3 +3,4 @@
 {"duration":"24.917µs","level":"info","method":"GET","msg":"Handled request","path":"/test","size":2,"status":200,"time":"2024-04-02T15:49:19+08:00"}
 {"duration":"55.333µs","level":"info","method":"GET","msg":"Handled request","path":"/test","size":2,"status":200,"time":"2024-04-02T17:06:55+08:00"}
 {"duration":"71.5µs","level":"info","method":"GET","msg":"Handled request","path":"/test","size":2,"status":200,"time":"2024-04-02T17:31:32+08:00"}
+{"duration":"63.5µs","level":"info","method":"GET","msg":"Handled request","path":"/test","size":2,"status":200,"time":"2024-04-02T18:07:25+08:00"}

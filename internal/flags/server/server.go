@@ -1,9 +1,8 @@
-package agentflags
+package serverflags
 
 import (
 	"log"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -15,22 +14,25 @@ var flags = pflag.NewFlagSet("flags", pflag.ExitOnError)
 func init() {
 	// Define the flags and bind them to viper
 	flags.StringP("ServerAddress", "a", "localhost:8080", "HTTP server network address")
-	flags.IntP("ReportInterval", "r", 10, "Interval between fetching reportable metrics in seconds")
-	flags.IntP("PollInterval", "p", 2, "Interval between polling metrics in seconds")
+	flags.IntP("StoreInterval", "i", 300, "Interval in seconds to store the current server readings to disk")
+	flags.StringP("FileStoragePath", "f", "/tmp/metrics-db.json", "Full filename where current values are saved")
+	flags.BoolP("Restore", "r", true, "Whether to load previously saved values from the specified file at server startup")
 
 	// Parse the command-line flags
 	flags.Parse(os.Args[1:])
 
 	// Bind the flags to viper
 	bindFlagToViper("ServerAddress")
-	bindFlagToViper("ReportInterval")
-	bindFlagToViper("PollInterval")
+	bindFlagToViper("StoreInterval")
+	bindFlagToViper("FileStoragePath")
+	bindFlagToViper("Restore")
 
 	// Set the environment variable names
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	bindEnvToViper("ServerAddress", "ADDRESS")
-	bindEnvToViper("ReportInterval", "REPORT_INTERVAL")
-	bindEnvToViper("PollInterval", "POLL_INTERVAL")
+	bindEnvToViper("StoreInterval", "STORE_INTERVAL")
+	bindEnvToViper("FileStoragePath", "FILE_STORAGE_PATH")
+	bindEnvToViper("Restore", "RESTORE")
 
 	// Read the environment variables
 	viper.AutomaticEnv()
@@ -48,24 +50,21 @@ func bindEnvToViper(viperKey, envKey string) {
 	}
 }
 
-func GetServerAddress() string {
+func ServerAddress() string {
 	return viper.GetString("ServerAddress")
 }
 
-func GetReportInterval() int {
-	reportIntervalStr := os.Getenv("REPORT_INTERVAL")
-	reportInterval, err := strconv.Atoi(reportIntervalStr)
-	if err != nil || reportInterval <= 0 {
-		reportInterval = 10
-	}
-	return reportInterval
+func StoreInterval() int {
+	return viper.GetInt("StoreInterval")
 }
 
-func GetPollInterval() int {
-	pollIntervalStr := os.Getenv("POLL_INTERVAL")
-	pollInterval, err := strconv.Atoi(pollIntervalStr)
-	if err != nil || pollInterval <= 0 {
-		pollInterval = 2
-	}
-	return pollInterval
+func FileStoragePath() string {
+    path := viper.GetString("FileStoragePath")
+    if path == "=" {
+        return ""
+    }
+    return path
+}
+func Restore() bool {
+	return viper.GetBool("Restore")
 }

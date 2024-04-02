@@ -17,43 +17,6 @@ type FileStorage struct {
 	restore         bool
 }
 
-// func NewFile(s handlers.Storager, storeInterval int, fileStoragePath string, restore bool) (*FileStorage, error) {
-//     fs := &FileStorage{
-//         Storager:        s,
-//         storeInterval:   storeInterval,
-//         fileStoragePath: fileStoragePath,
-//         restore:         restore,
-//     }
-
-//     if fs.storeInterval < 0 {
-//         return nil, fmt.Errorf("storeInterval must be greater than 0")
-//     }
-//     if fs.fileStoragePath == "" {
-//         return nil, fmt.Errorf("fileStoragePath cannot be empty")
-//     }
-//     if fs.restore && fs.fileStoragePath == "" {
-//         return nil, fmt.Errorf("restore cannot be true if fileStoragePath is empty")
-//     }
-//     if fs.restore && fs.fileStoragePath != "" {
-//         if err := fs.createFileIfNotExists(); err != nil {
-//             return nil, err
-//         }
-
-//         // File exists, load it into memory
-//         fmt.Println("Loading metrics from file:", fs.fileStoragePath)
-//         if err := fs.LoadFromFile(); err != nil {
-//             logger.Log.WithError(err).Error("Failed to load metrics from file")
-//             return nil, err
-//         }
-//     }
-
-//     if fs.storeInterval > 0 {
-//         go fs.saveAtInterval()
-//     }
-
-//     return fs, nil
-// }
-
 func NewFile(s handlers.Storager, storeInterval int, fileStoragePath string, restore bool) (*FileStorage, error) {
 	fs := &FileStorage{
 		Storager:        s,

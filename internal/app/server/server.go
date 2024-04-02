@@ -3,10 +3,10 @@ package appserver
 import (
 	"fmt"
 
+	flag "Vova4o/metrix/internal/flags/server"
 	"Vova4o/metrix/internal/handlers"
 	"Vova4o/metrix/internal/logger"
 	mw "Vova4o/metrix/internal/middleware"
-	"Vova4o/metrix/internal/serverflags"
 	"Vova4o/metrix/internal/storage"
 
 	"github.com/gin-gonic/gin"
@@ -23,8 +23,8 @@ func NewServer() error {
 	// Create a new MemStorage
 	memStorager := storage.NewMemory()
 
-	if serverflags.GetFileStoragePath() != "" {
-		fileStorage, err := storage.NewFile(memStorager, serverflags.GetStoreInterval(), serverflags.GetFileStoragePath(), serverflags.GetRestore())
+	if flag.FileStoragePath() != "" {
+		fileStorage, err := storage.NewFile(memStorager, flag.StoreInterval(), flag.FileStoragePath(), flag.Restore())
 		if err != nil {
 			err = fmt.Errorf("failed to create new file storage: %v", err)
 			logger.Log.WithError(err).Error("Failed to create new file storage")
@@ -51,8 +51,8 @@ func NewServer() error {
 	router.GET("/value/:metricType/:metricName", handlers.MetricValue(memStorager))
 	router.POST("/value/", handlers.MetricValueJSON(memStorager))
 
-	fmt.Printf("Starting server on %s\n", serverflags.GetServerAddress())
+	fmt.Printf("Starting server on %s\n", flag.ServerAddress())
 
 	// Start the server
-	return router.Run(serverflags.GetServerAddress())
+	return router.Run(flag.ServerAddress())
 }
