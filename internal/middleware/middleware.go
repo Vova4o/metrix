@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"compress/gzip"
+	"net/http"
 	"strings"
 	"time"
 
@@ -16,6 +17,7 @@ type gzipWriter struct {
 	Writer *gzip.Writer
 }
 
+// RequestLogger logs all the requests
 func RequestLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
@@ -38,7 +40,7 @@ func (w gzipWriter) Write(b []byte) (int, error) {
 }
 
 // GzipMiddleware compresses response body in gzip format if the client supports it
-func GzipMiddleware() gin.HandlerFunc {
+func CompressGzip() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Check if the client accepts gzip compression
 		if !strings.Contains(c.GetHeader("Accept-Encoding"), "gzip") {
@@ -53,4 +55,26 @@ func GzipMiddleware() gin.HandlerFunc {
 		c.Writer = &gzipWriter{ResponseWriter: c.Writer, Writer: gz}
 		c.Next()
 	}
+}
+
+// OptionalDecompressGzip decompresses request body if it is compressed in gzip format
+// so you dont need to handle this gzip in your handles
+func DecompressGzip(c *gin.Context) {
+	if c.GetHeader("Content-Encoding") != "gzip" {
+		c.Next()
+		return
+	}
+
+	r, err := gzip.NewReader(c.Request.Body)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	defer r.Close()
+
+	c.Request.Header.Del("Content-Encoding")
+	c.Request.Header.Del("Content-Length")
+	c.Request.Body = r
+
+	c.Next()
 }

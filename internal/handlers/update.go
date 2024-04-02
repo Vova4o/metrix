@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"compress/gzip"
 	"encoding/json"
 	"io"
 	"log"
@@ -47,26 +46,11 @@ func HandleUpdateJSON(s Storager) gin.HandlerFunc {
 		var body []byte
 		var err error
 
-		if c.GetHeader("Content-Encoding") == "gzip" {
-			reader, err := gzip.NewReader(c.Request.Body)
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid gzip"})
-				return
-			}
-			defer reader.Close()
-
-			body, err = io.ReadAll(reader)
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read gzip"})
-				return
-			}
-		} else {
-			log.Printf("Received JSON")
-			body, err = io.ReadAll(c.Request.Body)
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
-				return
-			}
+		log.Printf("Received JSON")
+		body, err = io.ReadAll(c.Request.Body)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
+			return
 		}
 
 		err = json.Unmarshal(body, &metrics)

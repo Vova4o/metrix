@@ -10,7 +10,6 @@ import (
 	"Vova4o/metrix/internal/storage"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gin-contrib/gzip"
 )
 
 func NewServer() error {
@@ -38,7 +37,8 @@ func NewServer() error {
 	}
 
 	router.Use(mw.RequestLogger())
-	router.Use(gzip.Gzip(gzip.DefaultCompression))
+	router.Use(mw.CompressGzip())
+	router.Use(mw.DecompressGzip)
 	// router.Use(mw.RequestLogger())
 
 	// Add the handlers to the router

@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"bytes"
 	"compress/gzip"
 	"io"
 	"net/http"
@@ -77,7 +78,7 @@ func TestGzipMiddleware(t *testing.T) {
 	// Create a Gin engine for testing
 	gin.SetMode(gin.TestMode)
 	engine := gin.New()
-	engine.Use(GzipMiddleware())
+	engine.Use(CompressGzip())
 	engine.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "Hello, world!")
 	})
@@ -124,7 +125,7 @@ func TestGzipMiddleware_NoGzip(t *testing.T) {
 	// Create a Gin engine for testing
 	gin.SetMode(gin.TestMode)
 	engine := gin.New()
-	engine.Use(GzipMiddleware())
+	engine.Use(CompressGzip())
 	engine.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "Hello, world!")
 	})
@@ -154,4 +155,52 @@ func TestGzipMiddleware_NoGzip(t *testing.T) {
 	if body != "Hello, world!" {
 		t.Errorf("handler returned unexpected body: got %v want %v", body, "Hello, world!")
 	}
+}
+
+func TestDecompressGzip(t *testing.T) {
+	// Create a Gin engine for testing
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	engine.Use(DecompressGzip)
+	engine.POST("/test", func(c *gin.Context) {
+		body, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			t.Fatalf("Failed to read request body: %v", err)
+		}
+		c.String(http.StatusOK, string(body))
+	})
+
+	// Create a test request with gzip-encoded body
+	gzipBody := compressGzip([]byte("Hello, world!"))
+	req, err := http.NewRequest("POST", "/test", bytes.NewReader(gzipBody))
+	if err != nil {
+		t.Fatalf("Failed to create request: %v", err)
+	}
+	req.Header.Set("Content-Encoding", "gzip")
+
+	// Record the response
+	rr := httptest.NewRecorder()
+	engine.ServeHTTP(rr, req)
+
+	// Check the status code
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+	}
+
+	// Check the response body
+	if body := rr.Body.String(); body != "Hello, world!" {
+		t.Errorf("handler returned unexpected body: got %v want %v", body, "Hello, world!")
+	}
+}
+
+func compressGzip(data []byte) []byte {
+	var buf bytes.Buffer
+	gz := gzip.NewWriter(&buf)
+	if _, err := gz.Write(data); err != nil {
+		panic(err)
+	}
+	if err := gz.Close(); err != nil {
+		panic(err)
+	}
+	return buf.Bytes()
 }
