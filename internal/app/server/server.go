@@ -10,6 +10,7 @@ import (
 	"Vova4o/metrix/internal/storage"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/gzip"
 )
 
 func NewServer() error {
@@ -21,10 +22,10 @@ func NewServer() error {
 	tempFile := "metrix.page.tmpl"
 
 	// Create a new MemStorage
-	memStorager := storage.NewMemStorage()
+	memStorager := storage.NewMemory()
 
 	if serverflags.GetFileStoragePath() != "" {
-		fileStorage, err := storage.NewFileStorage(memStorager, serverflags.GetStoreInterval(), serverflags.GetFileStoragePath(), serverflags.GetRestore())
+		fileStorage, err := storage.NewFile(memStorager, serverflags.GetStoreInterval(), serverflags.GetFileStoragePath(), serverflags.GetRestore())
 		if err != nil {
 			err = fmt.Errorf("failed to create new file storage: %v", err)
 			logger.Log.WithError(err).Error("Failed to create new file storage")
@@ -36,7 +37,9 @@ func NewServer() error {
 		logger.Log.Info("Not using file storage")
 	}
 
-	router.Use(mw.RequestLogger(), mw.GzipMiddleware())
+	router.Use(mw.RequestLogger())
+	router.Use(gzip.Gzip(gzip.DefaultCompression))
+	// router.Use(mw.RequestLogger())
 
 	// Add the handlers to the router
 	router.POST("/update/:metricType/:metricName/:metricValue", handlers.HandleUpdateText(memStorager))

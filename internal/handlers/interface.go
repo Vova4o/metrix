@@ -37,9 +37,9 @@ type MetricsJSON struct {
 }
 
 type MetricUpdate struct {
-	Type  string `json:"type"`
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Type  string
+	Name  string
+	Value string
 }
 
 func (g GaugeMetricType) GetAll(s Storager) map[string]interface{} {

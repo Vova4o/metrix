@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -105,41 +104,32 @@ func (j *JSONMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 		baseURL = "http://" + baseURL
 	}
 
-	jsonDate, err := json.MarshalIndent(metric, "", "  ")
-	// this is how the error idealy should look like.
+	jsonData, err := json.Marshal(metric)
 	if err != nil {
 		err := fmt.Errorf("failed to marshal metric: %v", err)
 		logger.Log.Error(err)
 		return err
 	}
 
-	req := client.R().
-		SetHeader("Content-Type", "application/json").
-		SetHeader("Accept-Encoding", "gzip").
-		SetBody(jsonDate)
-
-	if strings.Contains(req.Header.Get("Accept-Encoding"), "gzip") {
-		var b bytes.Buffer
-		gz := gzip.NewWriter(&b)
-		if _, err := gz.Write(jsonDate); err != nil {
-			return err
-		}
-		if err := gz.Close(); err != nil {
-			return err
-		}
-
-		req.SetBody(b.Bytes())
-		req.SetHeader("Content-Encoding", "gzip")
-	} else {
-		req.SetBody(jsonDate)
+	var buf bytes.Buffer
+	gz := gzip.NewWriter(&buf)
+	if _, err := gz.Write(jsonData); err != nil {
+		err := fmt.Errorf("failed to write gzip data: %v", err)
+		logger.Log.Error(err)
+		return err
+	}
+	if err := gz.Close(); err != nil {
+		err := fmt.Errorf("failed to close gzip writer: %v", err)
+		logger.Log.Error(err)
+		return err
 	}
 
-	// fmt.Printf("Request Headers: JSON %v\n", req.Header)
-
-	resp, err := client.R().
+	req := client.R().
 		SetHeader("Content-Type", "application/json").
-		Post(fmt.Sprintf("%s/update/", baseURL))
-		// this is how it maigh look like
+		SetHeader("Content-Encoding", "gzip").
+		SetBody(buf.Bytes())
+
+	resp, err := req.Post(fmt.Sprintf("%s/update/", baseURL))
 	if err != nil {
 		logger.Log.Errorf("failed to send %s metric %s: %v", metricType, metricName, err)
 		return fmt.Errorf("failed to send %s metric %s: %v", metricType, metricName, err)
@@ -151,30 +141,4 @@ func (j *JSONMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 	}
 
 	return nil
-}
-
-// GzipWriter is a middleware that compresses response body in gzip format
-func GzipWriter(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		w.Header().Set("Content-Encoding", "gzip")
-		gz := gzip.NewWriter(w)
-		defer gz.Close()
-
-		gzw := gzipResponseWriter{Writer: gz, ResponseWriter: w}
-		next.ServeHTTP(gzw, r)
-	})
-}
-
-type gzipResponseWriter struct {
-	io.Writer
-	http.ResponseWriter
-}
-
-func (gzw gzipResponseWriter) Write(b []byte) (int, error) {
-	return gzw.Writer.Write(b)
 }
