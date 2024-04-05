@@ -25,11 +25,8 @@ func ShowMetrics(s Storager, tempFile string) gin.HandlerFunc {
 
 	// Return the actual handler function
 	return func(c *gin.Context) {
-		// Create a map of maps to hold the metrics
-		data := map[string]interface{}{
-			"GaugeMetrics":   GaugeMetricType{}.GetAll(s),
-			"CounterMetrics": CounterMetricType{}.GetAll(s),
-		}
+		
+		data := s.GetAllMetrics()
 
 		c.Writer.Header().Set("Content-Type", "text/html; charset=utf-8")
 

@@ -21,7 +21,7 @@ func TestMetricValue(t *testing.T) {
 	}{
 		{"Gauge Test", "gauge", "test", http.StatusOK, "123.45"},
 		{"Counter Test", "counter", "test", http.StatusOK, "678"},
-		{"Invalid Metric Type", "wrong", "test", http.StatusBadRequest, "Invalid metric type"},
+		{"Invalid Metric Type", "wrong", "test", http.StatusNotFound, "invalid metric type: wrong"},
 	}
 
 	for _, tt := range tests {
@@ -95,8 +95,8 @@ func TestMetricValueJSON(t *testing.T) {
 				"type": "wrong",
 				"id":   "test",
 			},
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   `{"error":"Invalid metric type"}`,
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   `{"error":"invalid metric type: wrong"}`,
 		},
 	}
 

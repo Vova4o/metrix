@@ -15,26 +15,19 @@ func HandleUpdateText(s Storager) gin.HandlerFunc {
 		metricName := c.Param("metricName")
 		metricValue := c.Param("metricValue")
 
-		var mt Metricer
-		switch metricType {
-		case "gauge":
-			mt = GaugeMetricType{}
-		case "counter":
-			mt = CounterMetricType{}
-		default:
-			log.Printf("Invalid metric type: %s", metricType)
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid metric type"})
+		// checking for empty values
+		if metricType == "" || metricName == "" || metricValue == "" {
+			log.Printf("Empty values")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Empty values"})
 			return
 		}
 
-		value, err := mt.ParseValue(metricValue)
+		err := storeMetric(s, metricType, metricName, metricValue)
 		if err != nil {
-			log.Printf("Invalid metric value: %v", err)
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid metric value"})
+			log.Printf("Failed to store metric: %v", err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-
-		mt.Store(s, metricName, value)
 
 		c.Status(http.StatusOK)
 	}
@@ -42,11 +35,11 @@ func HandleUpdateText(s Storager) gin.HandlerFunc {
 
 func HandleUpdateJSON(s Storager) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var metrics MetricsJSON
+		var metrics []MetricsJSON
+		var singleMetric MetricsJSON
 		var body []byte
 		var err error
 
-		log.Printf("Received JSON")
 		body, err = io.ReadAll(c.Request.Body)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
@@ -55,67 +48,37 @@ func HandleUpdateJSON(s Storager) gin.HandlerFunc {
 
 		err = json.Unmarshal(body, &metrics)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
-			return
-		}
-		log.Printf("Received metrics: %+v", metrics)
-
-		if metrics.ID == "" {
-			log.Printf("Missing id")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing id"})
-			return
-		}
-
-		var mt Metricer
-		var value interface{}
-		switch metrics.MType {
-		case "gauge":
-			mt = GaugeMetricType{}
-			if metrics.Value != nil {
-				value = *metrics.Value
-			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Value is required for gauge type"})
+			// If unmarshalling into an array fails, try unmarshalling into a single object
+			err = json.Unmarshal(body, &singleMetric)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
 				return
 			}
-		case "counter":
-			mt = CounterMetricType{}
-			if metrics.Delta != nil {
-				value = *metrics.Delta
-			}
-		default:
-			log.Printf("Invalid metric type: %s", metrics.MType)
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid metric type"})
-			return
+
+			// If unmarshalling into a single object succeeds, add it to the metrics array
+			metrics = append(metrics, singleMetric)
 		}
 
-		mt.Store(s, metrics.ID, value)
-
-		// Get the latest value from the storage
-		latestValue, ok := mt.GetValue(s, metrics.ID)
-		if !ok {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get latest value"})
-			return
-		}
-
-		// Update the metrics value based on the type
-		if metrics.MType == "counter" {
-			if val, ok := latestValue.(int64); ok {
-				metrics.Delta = &val
-			} else {
-				log.Printf("Expected *int64, got %T", latestValue)
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		for _, metric := range metrics {
+			if metric.ID == "" {
+				log.Printf("Missing id")
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Missing id"})
 				return
 			}
-		} else if metrics.MType == "gauge" {
-			if val, ok := latestValue.(float64); ok {
-				metrics.Value = &val
-			} else {
-				log.Printf("Expected *float64, got %T", latestValue)
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+
+			err := storeMetricJSON(s, metric)
+			if err != nil {
+				log.Printf("Failed to store metric: %v", err)
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 				return
 			}
 		}
 
-		c.JSON(http.StatusOK, metrics)
+		// Respond with a single JSON object if the metrics array contains only one element
+		if len(metrics) > 1 {
+			c.JSON(http.StatusOK, metrics)
+		} else {
+			c.JSON(http.StatusOK, metrics[0])
+		}
 	}
 }

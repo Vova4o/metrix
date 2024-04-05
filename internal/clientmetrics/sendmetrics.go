@@ -89,12 +89,16 @@ func (j *JSONMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 		return fmt.Errorf("invalid metric type: %s", metricType)
 	}
 
-	metric := MetricsJSON{
-		ID:    metricName,
-		MType: metricType,
-		Delta: delta,
-		Value: value,
+	metric := []MetricsJSON{
+		{
+			ID:    metricName,
+			MType: metricType,
+			Delta: delta,
+			Value: value,
+		},
 	}
+	// add metrix slice to metrics
+	// and on a handle update json, iterate over the slice
 
 	if client == nil {
 		return errors.New("client is nil")
@@ -140,5 +144,15 @@ func (j *JSONMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 		return fmt.Errorf("server returned non-OK status for %s metric %s: %v", metricType, metricName, resp.Status())
 	}
 
+	return nil
+}
+
+func (j *JSONMetricSender) SendMetrics(client *resty.Client, metrics []Metric, baseURL string) error {
+	for _, metric := range metrics {
+		err := j.SendMetric(client, metric.Type, metric.Name, metric.Value, baseURL)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

@@ -1,8 +1,10 @@
 package logger
 
 import (
+	"io"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
@@ -18,6 +20,8 @@ func New(logFile string) error {
 
 	Log.Out = file
 	Log.SetFormatter(&logrus.JSONFormatter{})
+
+	gin.DefaultWriter = io.MultiWriter(file)
 
 	return nil
 }

@@ -46,3 +46,8 @@ internal/app/agent/test.log
 internal/app/agent/test.log
 internal/clientmetrics/test.log
 internal/app/agent/test.log
+autotest.sh
+agent.log
+server.log
+temp
+internal/middleware/test.log

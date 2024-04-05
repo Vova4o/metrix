@@ -1,13 +1,14 @@
 package handlers
 
 import (
-	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestHandleUpdateText(t *testing.T) {
@@ -36,52 +37,82 @@ func TestHandleUpdateText(t *testing.T) {
 }
 
 func TestHandleUpdateJSON(t *testing.T) {
-	tests := []struct {
+	// Create a mock Storager
+	mockStorager := &mockStorager{}
+
+	// Define the test cases
+	testCases := []struct {
 		name           string
-		metrics        MetricsJSON
+		body           string
 		expectedStatus int
+		expectedBody   interface{}
 	}{
 		{
-			name: "valid gauge metric",
-			metrics: MetricsJSON{
-				ID:    "test",
-				MType: "gauge",
-				Value: pointerToFloat64(1.23),
-			},
+			name:           "Valid JSON",
+			body:           `[{"id": "test", "type": "gauge", "value": 1.0}]`,
 			expectedStatus: http.StatusOK,
+			expectedBody:   map[string]interface{}{"id": "test", "type": "gauge", "value": 1.0},
 		},
-		// Add more test cases here
+		{
+			name:           "Valid single JSON for gauge",
+			body:           `{"id": "test", "type": "gauge", "value": 1.0}`,
+			expectedStatus: http.StatusOK,
+			expectedBody:   map[string]interface{}{"id": "test", "type": "gauge", "value": 1.0},
+		},
+		{
+			name:           "Valid JSON with multiple metrics",
+			body:           `[{"id": "test1", "type": "gauge", "value": 1.0}, {"id": "test2", "type": "gauge", "value": 2.0}]`,
+			expectedStatus: http.StatusOK,
+			expectedBody:   []map[string]interface{}{{"id": "test1", "type": "gauge", "value": 1.0}, {"id": "test2", "type": "gauge", "value": 2.0}},
+		},
+		{
+			name:           "Invalid JSON",
+			body:           `{"id": "test", "type": "invalid", "value": 1.0]`,
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   map[string]interface{}{"error": "Invalid JSON"},
+		},
+		// ... other test cases ...
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Create a mock Gin context
-			c, _ := gin.CreateTestContext(httptest.NewRecorder())
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create a new gin context with the test case body
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+			c.Request = httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tc.body))
 
-			// Convert the MetricsJSON object to JSON
-			body, err := json.Marshal(tt.metrics)
+			// Call the function with the mock Storager and gin context
+			HandleUpdateJSON(mockStorager)(c)
+
+			// Check the response status and body
+			assert.Equal(t, tc.expectedStatus, w.Code)
+
+			var responseBody interface{}
+			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			if err != nil {
-				t.Fatalf("Failed to marshal JSON: %v", err)
+				t.Fatalf("Failed to unmarshal response body: %v", err)
 			}
 
-			// Set the request body
-			c.Request, _ = http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-			c.Request.Header.Set("Content-Type", "application/json")
+			responseAsMap, ok := responseBody.(map[string]interface{})
+			if ok {
+				assert.Equal(t, tc.expectedBody, responseAsMap)
+			} else {
+				responseAsSlice, ok := responseBody.([]interface{})
+				if !ok {
+					t.Fatalf("Failed to assert response body type to []interface{}")
+				}
 
-			// Create a mock storager
-			s := &mockStorager{}
+				var response []map[string]interface{}
+				for _, item := range responseAsSlice {
+					itemAsMap, ok := item.(map[string]interface{})
+					if !ok {
+						t.Fatalf("Failed to assert response body item type to map[string]interface{}")
+					}
+					response = append(response, itemAsMap)
+				}
 
-			// Call the handler function
-			HandleUpdateJSON(s)(c)
-
-			// Check the response status code
-			if c.Writer.Status() != tt.expectedStatus {
-				t.Errorf("expected %v, got %v", tt.expectedStatus, c.Writer.Status())
+				assert.Equal(t, tc.expectedBody, response)
 			}
 		})
 	}
-}
-
-func pointerToFloat64(f float64) *float64 {
-	return &f
 }
