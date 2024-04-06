@@ -16,18 +16,12 @@ type Storager interface {
 	GetAllMetrics() map[string]interface{}
 }
 
-// MetricType is an interface for metric types
-type Metricer interface {
-	ParseValue(string) (interface{}, error)
-	GetValue(Storager, string) (interface{}, bool)
-	FormatValue(interface{}) string
-	Store(Storager, string, interface{})
-	GetAll(Storager) map[string]interface{}
+type FileStorager interface {
+	Storager
+	SaveToFile() error
+	LoadFromFile() error
+	Close() error
 }
-
-type GaugeMetricType struct{}
-
-type CounterMetricType struct{}
 
 type MetricsJSON struct {
 	ID    string   `json:"id"`              // имя метрики
@@ -37,57 +31,85 @@ type MetricsJSON struct {
 }
 
 type MetricUpdate struct {
-	Type  string `json:"type"`
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Type  string
+	Name  string
+	Value string
 }
 
-func (g GaugeMetricType) GetAll(s Storager) map[string]interface{} {
-	gauges := s.GetAllGauges()
-	result := make(map[string]interface{}, len(gauges))
-	for k, v := range gauges {
-		result[k] = v
+func storeMetricJSON(s Storager, metric MetricsJSON) error {
+	switch metric.MType {
+	case "gauge":
+		if metric.Value != nil {
+			s.SetGauge(metric.ID, *metric.Value)
+			return nil
+		} else {
+			return fmt.Errorf("value is required for gauge type")
+		}
+	case "counter":
+		if metric.Delta != nil {
+			s.SetCounter(metric.ID, *metric.Delta)
+			return nil
+		} else {
+			return fmt.Errorf("delta is required for counter type")
+		}
+	default:
+		return fmt.Errorf("invalid metric type: %s", metric.MType)
 	}
-	return result
 }
 
-func (c CounterMetricType) GetAll(s Storager) map[string]interface{} {
-	counters := s.GetAllCounters()
-	result := make(map[string]interface{}, len(counters))
-	for k, v := range counters {
-		result[k] = v
+func storeMetric(s Storager, metricType, metricName, metricValue string) error {
+	switch metricType {
+	case "gauge":
+		value, err := strconv.ParseFloat(metricValue, 64)
+		if err != nil {
+			return fmt.Errorf("invalid metric value: %v", err)
+		}
+		s.SetGauge(metricName, value)
+	case "counter":
+		value, err := strconv.ParseInt(metricValue, 10, 64)
+		if err != nil {
+			return fmt.Errorf("invalid metric value: %v", err)
+		}
+		s.SetCounter(metricName, value)
+	default:
+		return fmt.Errorf("invalid metric type: %s", metricType)
 	}
-	return result
+
+	return nil
 }
 
-func (g GaugeMetricType) ParseValue(value string) (interface{}, error) {
-	return strconv.ParseFloat(value, 64)
+func getJSONValue(s Storager, metrics MetricsJSON) (interface{}, error) {
+	var value interface{}
+	var ok bool
+	switch metrics.MType {
+	case "gauge":
+		if value, ok = s.GetGauge(metrics.ID); !ok {
+			return nil, fmt.Errorf("metric not found")
+		}
+	case "counter":
+		if value, ok = s.GetCounter(metrics.ID); !ok {
+			return nil, fmt.Errorf("metric not found")
+		}
+	default:
+		return nil, fmt.Errorf("invalid metric type: %s", metrics.MType)
+	}
+	return value, nil
 }
 
-func (g GaugeMetricType) Store(s Storager, name string, value interface{}) {
-	s.SetGauge(name, value.(float64))
-}
-
-func (c CounterMetricType) ParseValue(value string) (interface{}, error) {
-	return strconv.ParseInt(value, 10, 64)
-}
-
-func (c CounterMetricType) Store(s Storager, name string, value interface{}) {
-	s.SetCounter(name, value.(int64))
-}
-
-func (g GaugeMetricType) GetValue(s Storager, name string) (interface{}, bool) {
-	return s.GetGauge(name)
-}
-
-func (g GaugeMetricType) FormatValue(value interface{}) string {
-	return strconv.FormatFloat(value.(float64), 'f', -1, 64)
-}
-
-func (c CounterMetricType) GetValue(s Storager, name string) (interface{}, bool) {
-	return s.GetCounter(name)
-}
-
-func (c CounterMetricType) FormatValue(value interface{}) string {
-	return fmt.Sprintf("%d", int(value.(int64)))
+func getMetricValue(s Storager, metricType, metricName string) (interface{}, error) {
+	var value interface{}
+	var ok bool
+	switch metricType {
+	case "gauge":
+		if value, ok = s.GetGauge(metricName); !ok {
+			return nil, fmt.Errorf("metric not found")
+		}
+	case "counter":
+		if value, ok = s.GetCounter(metricName); !ok {
+			return nil, fmt.Errorf("metric not found")
+		}
+	default:
+		return nil, fmt.Errorf("invalid metric type: %s", metricType)
+	}
+	return value, nil
 }

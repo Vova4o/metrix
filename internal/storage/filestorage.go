@@ -17,14 +17,7 @@ type FileStorage struct {
 	restore         bool
 }
 
-func NewFileStorage(s handlers.Storager, storeInterval int, fileStoragePath string, restore bool) (*FileStorage, error) {
-	// memStorage, ok := memStorager.(*MemStorage)
-	// if !ok {
-	// 	err := fmt.Errorf("expected *storage.MemStorage type")
-	// 	logger.Log.Errorf(err.Error())
-	// 	return nil, err
-	// }
-
+func NewFile(s handlers.Storager, storeInterval int, fileStoragePath string, restore bool) (*FileStorage, error) {
 	fs := &FileStorage{
 		Storager:        s,
 		storeInterval:   storeInterval,

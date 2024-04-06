@@ -13,23 +13,23 @@ func TestParseFlags(t *testing.T) {
 	os.Setenv("RESTORE", "false")
 
 	// Call the function
-	GetServerAddress()
-	GetStoreInterval()
-	GetFileStoragePath()
-	GetRestore()
+	ServerAddress()
+	StoreInterval()
+	FileStoragePath()
+	Restore()
 
 	// Check that the flag values have been overridden
-	if GetServerAddress() != "http://testaddress:8080" {
-		t.Errorf("expected %v, got %v", "http://testaddress:8080", GetServerAddress())
+	if ServerAddress() != "http://testaddress:8080" {
+		t.Errorf("expected %v, got %v", "http://testaddress:8080", ServerAddress())
 	}
-	if GetStoreInterval() != 200 {
-		t.Errorf("expected %v, got %v", 200, GetStoreInterval())
+	if StoreInterval() != 200 {
+		t.Errorf("expected %v, got %v", 200, StoreInterval())
 	}
-	if GetFileStoragePath() != "/tmp/test-metrics-db.json" {
-		t.Errorf("expected %v, got %v", "/tmp/test-metrics-db.json", GetFileStoragePath())
+	if FileStoragePath() != "/tmp/test-metrics-db.json" {
+		t.Errorf("expected %v, got %v", "/tmp/test-metrics-db.json", FileStoragePath())
 	}
-	if GetRestore() != false {
-		t.Errorf("expected %v, got %v", false, GetRestore())
+	if Restore() != false {
+		t.Errorf("expected %v, got %v", false, Restore())
 	}
 
 	// Unset the environment variables to avoid affecting other tests

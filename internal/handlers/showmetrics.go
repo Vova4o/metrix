@@ -6,45 +6,46 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+
+	"github.com/gin-gonic/gin"
 )
 
 //go:embed templates/*
 var templates embed.FS
 
 // ShowMetrics is an HTTP handler that shows all the metrics
-func ShowMetrics(s Storager, tempFile string) http.HandlerFunc {
+func ShowMetrics(s Storager, tempFile string) gin.HandlerFunc {
 	// Parse the template file
 	tmpl, errFunc := ParseTemplate(tempFile)
 	if errFunc != nil {
-		return errFunc
+		return func(c *gin.Context) {
+			c.String(http.StatusInternalServerError, "Internal Server Error")
+		}
 	}
 
 	// Return the actual handler function
-	return func(w http.ResponseWriter, r *http.Request) {
-		// Set the content type
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		// Create a map of maps to hold the metrics
-		data := map[string]interface{}{
-			"GaugeMetrics":   GaugeMetricType{}.GetAll(s),
-			"CounterMetrics": CounterMetricType{}.GetAll(s),
-		}
+	return func(c *gin.Context) {
+		
+		data := s.GetAllMetrics()
+
+		c.Writer.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 		// Execute the template with the data
-		err := tmpl.Execute(w, data)
+		err := tmpl.Execute(c.Writer, data)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			c.String(http.StatusInternalServerError, err.Error())
 			return
 		}
 	}
 }
 
 // ParseTemplate parses the template file and returns the parsed template
-func ParseTemplate(tempFile string) (*template.Template, func(w http.ResponseWriter, r *http.Request)) {
+func ParseTemplate(tempFile string) (*template.Template, func(*gin.Context)) {
 	tmpl, err := template.ParseFS(templates, filepath.Join("templates", tempFile))
 	if err != nil {
 		log.Printf("Error parsing template: %v", err)
-		return nil, func(w http.ResponseWriter, r *http.Request) {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return nil, func(c *gin.Context) {
+			c.String(http.StatusInternalServerError, "Internal Server Error")
 		}
 	}
 	return tmpl, nil

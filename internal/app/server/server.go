@@ -1,30 +1,32 @@
 package appserver
 
 import (
+	"database/sql"
 	"fmt"
-	"net/http"
 
+	flag "Vova4o/metrix/internal/flags/server"
 	"Vova4o/metrix/internal/handlers"
 	"Vova4o/metrix/internal/logger"
 	mw "Vova4o/metrix/internal/middleware"
-	"Vova4o/metrix/internal/serverflags"
 	"Vova4o/metrix/internal/storage"
 
-	"github.com/go-chi/chi/middleware"
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
 )
 
 func NewServer() error {
+	// Set the mode to release
+	gin.SetMode(gin.ReleaseMode)
 	// Create a new router
-	mux := chi.NewRouter()
+	router := gin.Default()
 
 	tempFile := "metrix.page.tmpl"
 
 	// Create a new MemStorage
-	memStorager := storage.NewMemStorage()
+	memStorager := storage.NewMemory()
 
-	if serverflags.GetFileStoragePath() != "" {
-		fileStorage, err := storage.NewFileStorage(memStorager, serverflags.GetStoreInterval(), serverflags.GetFileStoragePath(), serverflags.GetRestore())
+	if flag.FileStoragePath() != "" {
+		fileStorage, err := storage.NewFile(memStorager, flag.StoreInterval(), flag.FileStoragePath(), flag.Restore())
 		if err != nil {
 			err = fmt.Errorf("failed to create new file storage: %v", err)
 			logger.Log.WithError(err).Error("Failed to create new file storage")
@@ -36,22 +38,32 @@ func NewServer() error {
 		logger.Log.Info("Not using file storage")
 	}
 
-	mux.Use(mw.RequestLogger)
-	mux.Use(mw.GzipMiddleware)
-	// mux.Use(middleware.Logger)
-	mux.Use(middleware.Recoverer)
+	db, err := sql.Open("postgres", flag.DatabaseDSN())
+	if err != nil {
+		err = fmt.Errorf("failed to open database: %v", err)
+		logger.Log.WithError(err).Error("Failed to open database")
+		return err
+	}
+
+	router.Use(mw.RequestLogger())
+	router.Use(mw.CompressGzip())
+	router.Use(mw.DecompressGzip)
+	// router.Use(mw.RequestLogger())
 
 	// Add the handlers to the router
-	mux.Post("/update/{metricType}/{metricName}/{metricValue}", handlers.HandleUpdateText(memStorager))
-	mux.Post("/update/", handlers.HandleUpdateJSON(memStorager))
+	router.POST("/update/:metricType/:metricName/:metricValue", handlers.HandleUpdateText(memStorager))
 
-	mux.Get("/", handlers.ShowMetrics(memStorager, tempFile))
+	router.POST("/update/", handlers.HandleUpdateJSON(memStorager))
 
-	mux.Get("/value/{metricType}/{metricName}", handlers.MetricValue(memStorager))
-	mux.Post("/value/", handlers.MetricValueJSON(memStorager))
+	router.GET("/", handlers.ShowMetrics(memStorager, tempFile))
 
-	fmt.Printf("Starting server on %s\n", serverflags.GetServerAddress())
+	router.GET("/value/:metricType/:metricName", handlers.MetricValue(memStorager))
+	router.POST("/value/", handlers.MetricValueJSON(memStorager))
+
+	router.GET("/ping", handlers.Ping(db))
+
+	fmt.Printf("Starting server on %s\n", flag.ServerAddress())
 
 	// Start the server
-	return http.ListenAndServe(serverflags.GetServerAddress(), mux)
+	return router.Run(flag.ServerAddress())
 }

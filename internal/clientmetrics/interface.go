@@ -17,7 +17,9 @@ type MetricSender interface {
 	SendMetric(client *resty.Client, metricType, metricName, metricValue, baseURL string) error
 }
 
-type TextMetricSender struct{}
+type TextMetricSender struct {
+	mu sync.Mutex
+}
 
 type MetricsJSON struct {
 	ID    string   `json:"id"`              // имя метрики
@@ -26,7 +28,9 @@ type MetricsJSON struct {
 	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
 }
 
-type JSONMetricSender struct{}
+type JSONMetricSender struct {
+	mu sync.Mutex
+}
 
 type MetricsClient interface {
 	PollMetrics() error
