@@ -1,6 +1,7 @@
 package appserver
 
 import (
+	"database/sql"
 	"fmt"
 
 	flag "Vova4o/metrix/internal/flags/server"
@@ -10,6 +11,7 @@ import (
 	"Vova4o/metrix/internal/storage"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
 )
 
 func NewServer() error {
@@ -36,6 +38,13 @@ func NewServer() error {
 		logger.Log.Info("Not using file storage")
 	}
 
+	db, err := sql.Open("postgres", flag.DatabaseDSN())
+	if err != nil {
+		err = fmt.Errorf("failed to open database: %v", err)
+		logger.Log.WithError(err).Error("Failed to open database")
+		return err
+	}
+
 	router.Use(mw.RequestLogger())
 	router.Use(mw.CompressGzip())
 	router.Use(mw.DecompressGzip)
@@ -50,6 +59,8 @@ func NewServer() error {
 
 	router.GET("/value/:metricType/:metricName", handlers.MetricValue(memStorager))
 	router.POST("/value/", handlers.MetricValueJSON(memStorager))
+
+	router.GET("/ping", handlers.Ping(db))
 
 	fmt.Printf("Starting server on %s\n", flag.ServerAddress())
 
