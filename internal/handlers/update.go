@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -46,8 +45,6 @@ func HandleUpdateJSON(s Storager) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
 			return
 		}
-
-		fmt.Println(string(body))
 
 		err = json.Unmarshal(body, &metrics)
 		if err != nil {
