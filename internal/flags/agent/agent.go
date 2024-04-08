@@ -48,11 +48,11 @@ func bindEnvToViper(viperKey, envKey string) {
 	}
 }
 
-func GetServerAddress() string {
+func ServerAddress() string {
 	return viper.GetString("ServerAddress")
 }
 
-func GetReportInterval() int {
+func ReportInterval() int {
 	reportIntervalStr := os.Getenv("REPORT_INTERVAL")
 	reportInterval, err := strconv.Atoi(reportIntervalStr)
 	if err != nil || reportInterval <= 0 {
@@ -61,7 +61,7 @@ func GetReportInterval() int {
 	return reportInterval
 }
 
-func GetPollInterval() int {
+func PollInterval() int {
 	pollIntervalStr := os.Getenv("POLL_INTERVAL")
 	pollInterval, err := strconv.Atoi(pollIntervalStr)
 	if err != nil || pollInterval <= 0 {
