@@ -1,8 +1,9 @@
 package appserver
 
 import (
-	"database/sql"
+	"errors"
 	"fmt"
+	"time"
 
 	flag "Vova4o/metrix/internal/flags/server"
 	"Vova4o/metrix/internal/handlers"
@@ -10,7 +11,9 @@ import (
 	mw "Vova4o/metrix/internal/middleware"
 	"Vova4o/metrix/internal/storage"
 
+	"github.com/cenkalti/backoff/v4"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgconn"
 	_ "github.com/lib/pq"
 )
 
@@ -25,10 +28,30 @@ func NewServer() error {
 	// Create a new MemStorage
 	memStorager := storage.NewMemory()
 
-	var db *sql.DB
+	var db *storage.DbStorage
 	dsn := flag.DatabaseDSN()
 	if dsn != "" {
-		db, err := storage.NewDBConnection(dsn)
+		var err error
+
+		operation := func() error {
+			db, err = storage.NewDBConnection(dsn)
+			if err != nil {
+				var pgErr *pgconn.PgError
+				if errors.As(err, &pgErr) {
+					// Check if the error code is retryable
+					if pgErr.Code == "40001" || pgErr.Code == "40P01" {
+						return err
+					}
+				}
+				return backoff.Permanent(err)
+			}
+			return nil
+		}
+		b := backoff.NewExponentialBackOff()
+		b.InitialInterval = 1 * time.Second
+		b.MaxInterval = 5 * time.Second
+		b.MaxElapsedTime = 10 * time.Second
+		err = backoff.Retry(operation, b)
 		if err != nil {
 			err = fmt.Errorf("failed to create new database: %v", err)
 			logger.Log.WithError(err).Error("Failed to create new database")
@@ -48,20 +71,19 @@ func NewServer() error {
 	router.Use(mw.RequestLogger())
 	router.Use(mw.CompressGzip())
 	router.Use(mw.DecompressGzip)
-	// router.Use(mw.RequestLogger())
 
 	// Add the handlers to the router
 	router.POST("/update/:metricType/:metricName/:metricValue", handlers.HandleUpdateText(memStorager))
 
 	router.POST("/update/", handlers.HandleUpdateJSON(memStorager))
-	router.POST("/updates/", handlers.HandleUpdatesJSON(memStorager))
+	router.POST("/updates/", handlers.HandleUpdateJSON(memStorager))
 
 	router.GET("/", handlers.ShowMetrics(memStorager, tempFile))
 
 	router.GET("/value/:metricType/:metricName", handlers.MetricValue(memStorager))
 	router.POST("/value/", handlers.MetricValueJSON(memStorager))
 
-	router.GET("/ping", handlers.Ping(db))
+	router.GET("/ping", handlers.Ping(db.DB))
 
 	fmt.Printf("Starting server on %s\n", flag.ServerAddress())
 

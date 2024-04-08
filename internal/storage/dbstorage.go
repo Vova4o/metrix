@@ -16,7 +16,8 @@ type DbStorage struct {
 func NewDBConnection(flag string) (*DbStorage, error) {
 	var err error
 
-	dbStorage := &DbStorage{}
+	dbStorage := &DbStorage{
+	}
 
 	dbStorage.DB, err = sql.Open("postgres", flag)
 	if err != nil {

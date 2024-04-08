@@ -148,70 +148,74 @@ func (j *JSONMetricSender) SendMetric(client *resty.Client, metricType, metricNa
 	return nil
 }
 
-func SendAllMetrics(client *resty.Client, metricType, metricName, metricValue, baseURL string) error {
-	mu := &sync.Mutex{}
-	mu.Lock()
-	defer mu.Unlock()
+func SendAllMetrics(client *resty.Client, metrics []Metric, baseURL string) error {
+    mu := &sync.Mutex{}
+    mu.Lock()
+    defer mu.Unlock()
 
-	if client == nil {
-		return errors.New("client is nil")
-	}
+    if client == nil {
+        return errors.New("client is nil")
+    }
 
-	if !strings.HasPrefix(baseURL, "http://") {
-		baseURL = "http://" + baseURL
-	}
+    if !strings.HasPrefix(baseURL, "http://") {
+        baseURL = "http://" + baseURL
+    }
 
-	var delta *int64
-	var value *float64
-	if metricType == "counter" {
-		val, _ := strconv.ParseInt(metricValue, 10, 64)
-		delta = &val
-	} else {
-		val, _ := strconv.ParseFloat(metricValue, 64)
-		value = &val
-	}
-	jsonMetric := MetricsJSON{
-		ID:    metricName,
-		MType: metricType,
-		Delta: delta,
-		Value: value,
-	}
+    var jsonMetrics []MetricsJSON
+    for _, metric := range metrics {
+        var delta *int64
+        var value *float64
+        if metric.Type == "counter" {
+            val, _ := strconv.ParseInt(metric.Value, 10, 64)
+            delta = &val
+        } else {
+            val, _ := strconv.ParseFloat(metric.Value, 64)
+            value = &val
+        }
+        jsonMetric := MetricsJSON{
+            ID:    metric.Name,
+            MType: metric.Type,
+            Delta: delta,
+            Value: value,
+        }
+        jsonMetrics = append(jsonMetrics, jsonMetric)
+    }
 
-	jsonData, err := json.Marshal(jsonMetric)
-	if err != nil {
-		err := fmt.Errorf("failed to marshal metric: %v", err)
-		logger.Log.Error(err)
-		return err
-	}
+    jsonData, err := json.Marshal(jsonMetrics)
+    if err != nil {
+        err := fmt.Errorf("failed to marshal metrics: %v", err)
+        logger.Log.Error(err)
+        return err
+    }
 
-	var buf bytes.Buffer
-	gz := gzip.NewWriter(&buf)
-	if _, err := gz.Write(jsonData); err != nil {
-		err := fmt.Errorf("failed to write gzip data: %v", err)
-		logger.Log.Error(err)
-		return err
-	}
-	if err := gz.Close(); err != nil {
-		err := fmt.Errorf("failed to close gzip writer: %v", err)
-		logger.Log.Error(err)
-		return err
-	}
+    var buf bytes.Buffer
+    gz := gzip.NewWriter(&buf)
+    if _, err := gz.Write(jsonData); err != nil {
+        err := fmt.Errorf("failed to write gzip data: %v", err)
+        logger.Log.Error(err)
+        return err
+    }
+    if err := gz.Close(); err != nil {
+        err := fmt.Errorf("failed to close gzip writer: %v", err)
+        logger.Log.Error(err)
+        return err
+    }
 
-	req := client.R().
-		SetHeader("Content-Type", "application/json").
-		SetHeader("Content-Encoding", "gzip").
-		SetBody(buf.Bytes())
+    req := client.R().
+        SetHeader("Content-Type", "application/json").
+        SetHeader("Content-Encoding", "gzip").
+        SetBody(buf.Bytes())
 
-	resp, err := req.Post(fmt.Sprintf("%s/updates/", baseURL))
-	if err != nil {
-		logger.Log.Errorf("failed to send metric: %v", err)
-		return fmt.Errorf("failed to send metric: %v", err)
-	}
+    resp, err := req.Post(fmt.Sprintf("%s/updates/", baseURL))
+    if err != nil {
+        logger.Log.Errorf("failed to send metrics: %v", err)
+        return fmt.Errorf("failed to send metrics: %v", err)
+    }
 
-	if resp.StatusCode() != http.StatusOK {
-		logger.Log.Errorf("server returned non-OK status for metric: %v", resp.Status())
-		return fmt.Errorf("server returned non-OK status for metric: %v", resp.Status())
-	}
+    if resp.StatusCode() != http.StatusOK {
+        logger.Log.Errorf("server returned non-OK status for metrics: %v", resp.Status())
+        return fmt.Errorf("server returned non-OK status for metrics: %v", resp.Status())
+    }
 
-	return nil
+    return nil
 }

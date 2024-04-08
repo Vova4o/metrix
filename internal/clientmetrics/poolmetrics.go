@@ -135,6 +135,24 @@ func (ma *Metrics) ReportMetrics(baseURL string) error {
 	errs := make(chan error)
 	var wg sync.WaitGroup
 
+	metrix := make([]Metric, 0, len(ma.GaugeMetrics)+len(ma.CounterMetrics))
+
+	for name, value := range ma.GaugeMetrics {
+		metrix = append(metrix, Metric{
+			Type:  "gauge",
+			Name:  name,
+			Value: fmt.Sprintf("%g", value),
+		})
+	}
+
+	for name, value := range ma.CounterMetrics {
+		metrix = append(metrix, Metric{
+			Type:  "counter",
+			Name:  name,
+			Value: strconv.FormatInt(value, 10),
+		})
+	}
+
 	reportMetric := func(metricType, name, value string) {
 		defer wg.Done()
 		if err := ma.TextSender.SendMetric(ma.Client, metricType, name, value, baseURL); err != nil {
@@ -143,7 +161,7 @@ func (ma *Metrics) ReportMetrics(baseURL string) error {
 		if err := ma.JSONSender.SendMetric(ma.Client, metricType, name, value, baseURL); err != nil {
 			logger.Log.Errorf("error sending %s metric %s: %v", metricType, name, err)
 		}
-		if err := SendAllMetrics(ma.Client, metricType, name, value, baseURL); err != nil {
+		if err := SendAllMetrics(ma.Client, metrix, baseURL); err != nil {
 			logger.Log.Errorf("error sending %s metric %s: %v", metricType, name, err)
 		}
 	}
