@@ -3,7 +3,7 @@ package storage
 import "testing"
 
 func TestMemStorage_GetAllGauges(t *testing.T) {
-	ms := NewMemStorage()
+	ms := NewMemory()
 
 	ms.SetGauge("gauge1", 1.23)
 	ms.SetGauge("gauge2", 4.56)
@@ -26,7 +26,7 @@ func TestMemStorage_GetAllGauges(t *testing.T) {
 }
 
 func TestMemStorage_GetAllCounters(t *testing.T) {
-	ms := NewMemStorage()
+	ms := NewMemory()
 
 	// Set counter metrics
 	ms.SetGauge("gauge1", 1.23)
@@ -43,7 +43,7 @@ func TestMemStorage_GetAllCounters(t *testing.T) {
 }
 
 func TestMemStorage_SetGauge(t *testing.T) {
-	ms := NewMemStorage()
+	ms := NewMemory()
 
 	// Call the SetGauge method
 	ms.SetGauge("gauge1", 1.23)
@@ -59,7 +59,7 @@ func TestMemStorage_SetGauge(t *testing.T) {
 }
 
 func TestMemStorage_GetGauge(t *testing.T) {
-	ms := NewMemStorage()
+	ms := NewMemory()
 
 	ms.SetGauge("gauge1", 1.23)
 	ms.SetCounter("counter1", 10)
@@ -99,7 +99,7 @@ func TestMemStorage_SetCounter(t *testing.T) {
         // Add more test cases here...
     }
 	
-	ms := NewMemStorage()
+	ms := NewMemory()
 
     for _, tc := range testCases {
         t.Run(tc.name, func(t *testing.T) {
@@ -120,7 +120,7 @@ func TestMemStorage_SetCounter(t *testing.T) {
 }
 
 func TestMemStorage_GetCounter(t *testing.T) {
-	ms := NewMemStorage()
+	ms := NewMemory()
 
 	ms.SetGauge("gauge1", 1.23)
 	ms.SetCounter("counter1", 10)
@@ -149,7 +149,7 @@ func TestMemStorage_GetCounter(t *testing.T) {
 }
 
 func TestMemStorage_GetAllMetrics(t *testing.T) {
-	ms := NewMemStorage()
+	ms := NewMemory()
 
 	ms.SetGauge("gauge1", 1.23)
 	ms.SetCounter("counter1", 10)

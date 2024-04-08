@@ -15,19 +15,19 @@ func TestParseFlags(t *testing.T) {
 	os.Setenv("POLL_INTERVAL", "5")
 
 	// Call the function
-	GetServerAddress()
-	GetReportInterval()
-	GetPollInterval()
+	ServerAddress()
+	ReportInterval()
+	PollInterval()
 
 	// Check that the flag values have been overridden
-	if GetServerAddress() != "http://testaddress:8080" {
-		t.Errorf("expected %v, got %v", "http://testaddress:8080", GetServerAddress())
+	if ServerAddress() != "http://testaddress:8080" {
+		t.Errorf("expected %v, got %v", "http://testaddress:8080", ServerAddress())
 	}
-	if GetReportInterval() != 20 {
-		t.Errorf("expected %v, got %v", 20, GetReportInterval())
+	if ReportInterval() != 20 {
+		t.Errorf("expected %v, got %v", 20, ReportInterval())
 	}
-	if GetPollInterval() != 5 {
-		t.Errorf("expected %v, got %v", 5, GetPollInterval())
+	if PollInterval() != 5 {
+		t.Errorf("expected %v, got %v", 5, PollInterval())
 	}
 
 	// Unset the environment variables to avoid affecting other tests
@@ -43,19 +43,19 @@ func TestParseFlags_InvalidValues(t *testing.T) {
 	os.Setenv("POLL_INTERVAL", "not a number")
 
 	// Call the functions
-	GetServerAddress()
-	GetReportInterval()
-	GetPollInterval()
+	ServerAddress()
+	ReportInterval()
+	PollInterval()
 
 	// Check that the functions return the default values
-	if GetServerAddress() != "localhost:8080" {
-		t.Errorf("expected %v, got %v", "localhost:8080", GetServerAddress())
+	if ServerAddress() != "localhost:8080" {
+		t.Errorf("expected %v, got %v", "localhost:8080", ServerAddress())
 	}
-	if GetReportInterval() != 10 {
-		t.Errorf("expected %v, got %v", 10, GetReportInterval())
+	if ReportInterval() != 10 {
+		t.Errorf("expected %v, got %v", 10, ReportInterval())
 	}
-	if GetPollInterval() != 2 {
-		t.Errorf("expected %v, got %v", 2, GetPollInterval())
+	if PollInterval() != 2 {
+		t.Errorf("expected %v, got %v", 2, PollInterval())
 	}
 
 	// Unset the environment variables to avoid affecting other tests

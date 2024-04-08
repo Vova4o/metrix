@@ -9,20 +9,62 @@ import (
 	"sync"
 	"time"
 
-	"Vova4o/metrix/internal/agentflags"
+	flag "Vova4o/metrix/internal/flags/agent"
 	"Vova4o/metrix/internal/logger"
 
 	"github.com/go-resty/resty/v2"
 )
+
+type Metric struct {
+	Type  string `json:"type"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
+type MetricSender interface {
+	SendMetric(client *resty.Client, metricType, metricName, metricValue, baseURL string) error
+}
+
+type TextMetricSender struct {
+	mu sync.Mutex
+}
+
+type MetricsJSON struct {
+	ID    string   `json:"id"`              // имя метрики
+	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
+	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
+	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+}
+
+type JSONMetricSender struct {
+	mu sync.Mutex
+}
+
+type MetricsClient interface {
+	PollMetrics() error
+	ReportMetrics(baseURL string) error
+}
+
+type Metrics struct {
+	mu             sync.Mutex
+	GaugeMetrics   map[string]float64 `json:"gauge"`
+	CounterMetrics map[string]int64   `json:"counter"`
+	Client         *resty.Client
+	PollTicker     *time.Ticker
+	ReportTicker   *time.Ticker
+	BaseURL        string
+	TextSender     MetricSender
+	JSONSender     MetricSender
+}
 
 func NewMetrics(client *resty.Client) *Metrics {
 	return &Metrics{
 		GaugeMetrics:   make(map[string]float64),
 		CounterMetrics: make(map[string]int64),
 		Client:         client,
-		PollTicker:     time.NewTicker(time.Duration(agentflags.GetPollInterval()) * time.Second),
-		ReportTicker:   time.NewTicker(time.Duration(agentflags.GetReportInterval()) * time.Second),
-		BaseURL:        agentflags.GetServerAddress(),
+		PollTicker:     time.NewTicker(time.Duration(flag.PollInterval()) * time.Second),
+		ReportTicker:   time.NewTicker(time.Duration(flag.ReportInterval()) * time.Second),
+		BaseURL:        flag.ServerAddress(),
 		TextSender:     &TextMetricSender{},
 		JSONSender:     &JSONMetricSender{},
 	}
@@ -73,7 +115,7 @@ func (ma *Metrics) PollMetrics() error {
 func (ma *Metrics) ReportMetrics(baseURL string) error {
 	ma.mu.Lock()
 	defer ma.mu.Unlock()
-	
+
 	if ma.GaugeMetrics == nil {
 		return errors.New("random value is nil")
 	}
@@ -99,6 +141,9 @@ func (ma *Metrics) ReportMetrics(baseURL string) error {
 			logger.Log.Errorf("error sending %s metric %s: %v", metricType, name, err)
 		}
 		if err := ma.JSONSender.SendMetric(ma.Client, metricType, name, value, baseURL); err != nil {
+			logger.Log.Errorf("error sending %s metric %s: %v", metricType, name, err)
+		}
+		if err := SendAllMetrics(ma.Client, metricType, name, value, baseURL); err != nil {
 			logger.Log.Errorf("error sending %s metric %s: %v", metricType, name, err)
 		}
 	}

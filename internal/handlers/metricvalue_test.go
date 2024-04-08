@@ -3,29 +3,15 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
-	"strings"
 	"testing"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
 )
 
-func (m *mockStorager) GetValue(metricType, metricName string) (float64, bool) {
-	if metricType == "gauge" {
-		value, ok := m.gauges[metricName]
-		return value, ok
-	} else if metricType == "counter" {
-		value, ok := m.counters[metricName]
-		return float64(value), ok
-	}
-	return 0, false
-}
-
 func TestMetricValue(t *testing.T) {
-	// Define test cases
 	tests := []struct {
 		name           string
 		metricType     string
@@ -35,13 +21,13 @@ func TestMetricValue(t *testing.T) {
 	}{
 		{"Gauge Test", "gauge", "test", http.StatusOK, "123.45"},
 		{"Counter Test", "counter", "test", http.StatusOK, "678"},
-		{"Invalid Metric Type", "wrong", "test", http.StatusBadRequest, "Invalid metric type"},
+		{"Invalid Metric Type", "wrong", "test", http.StatusNotFound, "invalid metric type: wrong"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create a new router
-			r := chi.NewRouter()
+			r := gin.Default()
 
 			// Create a mock storager with some metrics
 			s := &mockStorager{
@@ -54,13 +40,10 @@ func TestMetricValue(t *testing.T) {
 			}
 
 			// Register the handler
-			r.Get("/metrics/{metricType}/{metricName}", MetricValue(s))
+			r.GET("/metrics/:metricType/:metricName", MetricValue(s))
 
 			// Create a test request
-			req, err := http.NewRequest("GET", "/metrics/"+tt.metricType+"/"+tt.metricName, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
+			req, _ := http.NewRequest("GET", "/metrics/"+tt.metricType+"/"+tt.metricName, nil)
 
 			// Create a test response recorder
 			rr := httptest.NewRecorder()
@@ -73,7 +56,8 @@ func TestMetricValue(t *testing.T) {
 				t.Errorf("expected %v, got %v", tt.expectedStatus, rr.Code)
 			}
 
-			if gotBody := strings.TrimSpace(rr.Body.String()); gotBody != strings.TrimSpace(tt.expectedBody) {
+			// Check the response body
+			if gotBody := rr.Body.String(); gotBody != tt.expectedBody {
 				t.Errorf("expected %v, got %v", tt.expectedBody, gotBody)
 			}
 		})
@@ -111,16 +95,15 @@ func TestMetricValueJSON(t *testing.T) {
 				"type": "wrong",
 				"id":   "test",
 			},
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   `"Invalid metric type"`,
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   `{"error":"invalid metric type: wrong"}`,
 		},
-		// Add more test cases as needed
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create a new router
-			r := chi.NewRouter()
+			r := gin.Default()
 
 			// Create a mock storager
 			s := &mockStorager{
@@ -133,19 +116,13 @@ func TestMetricValueJSON(t *testing.T) {
 			}
 
 			// Register the handler
-			r.Post("/metrics", MetricValueJSON(s))
+			r.POST("/metrics", MetricValueJSON(s))
 
 			// Create a test request body
-			jsonBody, err := json.Marshal(tt.body)
-			if err != nil {
-				t.Fatal(err)
-			}
+			jsonBody, _ := json.Marshal(tt.body)
 
 			// Create a test request
-			req, err := http.NewRequest("POST", "/metrics", bytes.NewBuffer(jsonBody))
-			if err != nil {
-				t.Fatal(err)
-			}
+			req, _ := http.NewRequest("POST", "/metrics", bytes.NewBuffer(jsonBody))
 
 			// Set the Content-Type header to application/json
 			req.Header.Set("Content-Type", "application/json")
@@ -162,23 +139,12 @@ func TestMetricValueJSON(t *testing.T) {
 			}
 
 			// Check the response body
-			if tt.expectedStatus == http.StatusOK {
-				var gotBody, expectedBody map[string]interface{}
-				if err := json.Unmarshal(rr.Body.Bytes(), &gotBody); err != nil {
-					t.Fatal(err)
-				}
-				if err := json.Unmarshal([]byte(tt.expectedBody), &expectedBody); err != nil {
-					t.Fatal(err)
-				}
+			var gotBody, expectedBody map[string]interface{}
+			json.Unmarshal([]byte(rr.Body.Bytes()), &gotBody)
+			json.Unmarshal([]byte(tt.expectedBody), &expectedBody)
 
-				if !reflect.DeepEqual(gotBody, expectedBody) {
-					t.Errorf("expected %v, got %v", expectedBody, gotBody)
-				}
-			} else {
-				gotBody := strings.Trim(rr.Body.String(), "\n")
-				if fmt.Sprintf("%q", gotBody) != tt.expectedBody {
-					t.Errorf("expected %v, got %v", tt.expectedBody, fmt.Sprintf("%q", gotBody))
-				}
+			if !reflect.DeepEqual(gotBody, expectedBody) {
+				t.Errorf("expected %v, got %v", expectedBody, gotBody)
 			}
 		})
 	}

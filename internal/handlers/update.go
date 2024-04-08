@@ -2,114 +2,134 @@ package handlers
 
 import (
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
 )
 
-func HandleUpdateText(s Storager) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		metricType := chi.URLParam(r, "metricType")
-		metricName := chi.URLParam(r, "metricName")
-		metricValue := chi.URLParam(r, "metricValue")
+func HandleUpdateText(s Storager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		metricType := c.Param("metricType")
+		metricName := c.Param("metricName")
+		metricValue := c.Param("metricValue")
 
-		var mt Metricer
-		switch metricType {
-		case "gauge":
-			mt = GaugeMetricType{}
-		case "counter":
-			mt = CounterMetricType{}
-		default:
-			log.Printf("Invalid metric type: %s", metricType)
-			http.Error(w, "Invalid metric type", http.StatusBadRequest)
+		// checking for empty values
+		if metricType == "" || metricName == "" || metricValue == "" {
+			log.Printf("Empty values")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Empty values"})
 			return
 		}
 
-		value, err := mt.ParseValue(metricValue)
+		err := storeMetric(s, metricType, metricName, metricValue)
 		if err != nil {
-			logAndRespondError(w, err, "Invalid metric value", http.StatusBadRequest)
+			log.Printf("Failed to store metric: %v", err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		mt.Store(s, metricName, value)
-
-		w.WriteHeader(http.StatusOK)
+		c.Status(http.StatusOK)
 	}
 }
 
-func logAndRespondError(w http.ResponseWriter, err error, message string, code int) {
-	log.Printf("%s: %s", message, err)
-	http.Error(w, message, code)
-}
+func HandleUpdateJSON(s Storager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var metrics []MetricsJSON
+		var singleMetric MetricsJSON
+		var body []byte
+		var err error
 
-func HandleUpdateJSON(s Storager) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var metrics MetricsJSON
-		err := json.NewDecoder(r.Body).Decode(&metrics)
+		body, err = io.ReadAll(c.Request.Body)
 		if err != nil {
-			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
 			return
 		}
 
-		if metrics.ID == "" {
-			http.Error(w, "Missing id", http.StatusBadRequest)
-			return
-		}
-
-		var mt Metricer
-		var value interface{}
-		switch metrics.MType {
-		case "gauge":
-			mt = GaugeMetricType{}
-			if metrics.Value != nil {
-				value = *metrics.Value
-			} else {
-				http.Error(w, "Value is required for gauge type", http.StatusBadRequest)
+		err = json.Unmarshal(body, &metrics)
+		if err != nil {
+			// If unmarshalling into an array fails, try unmarshalling into a single object
+			err = json.Unmarshal(body, &singleMetric)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
 				return
 			}
-		case "counter":
-			mt = CounterMetricType{}
-			if metrics.Delta != nil {
-				value = *metrics.Delta
-			}
-		default:
-			log.Printf("Invalid metric type: %s", metrics.MType)
-			http.Error(w, "Invalid metric type", http.StatusBadRequest)
-			return
+
+			// If unmarshalling into a single object succeeds, add it to the metrics array
+			metrics = append(metrics, singleMetric)
 		}
 
-		mt.Store(s, metrics.ID, value)
-
-		// Get the latest value from the storage
-		latestValue, ok := mt.GetValue(s, metrics.ID)
-		if !ok {
-			http.Error(w, "Failed to get latest value", http.StatusInternalServerError)
-			return
-		}
-
-		// Update the metrics value based on the type
-		if metrics.MType == "counter" {
-			if val, ok := latestValue.(int64); ok {
-				metrics.Delta = &val
-			} else {
-				log.Printf("Expected *int64, got %T", latestValue)
-				http.Error(w, "Internal server error", http.StatusInternalServerError)
+		for _, metric := range metrics {
+			if metric.ID == "" {
+				log.Printf("Missing id")
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Missing id"})
 				return
 			}
-		} else if metrics.MType == "gauge" {
-			if val, ok := latestValue.(float64); ok {
-				metrics.Value = &val
-			} else {
-				log.Printf("Expected *float64, got %T", latestValue)
-				http.Error(w, "Internal server error", http.StatusInternalServerError)
+
+			err := storeMetricJSON(s, metric)
+			if err != nil {
+				log.Printf("Failed to store metric: %v", err)
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 				return
 			}
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(metrics)
-
-		w.WriteHeader(http.StatusOK)
+		// Respond with a single JSON object if the metrics array contains only one element
+		if len(metrics) > 1 {
+			c.JSON(http.StatusOK, metrics)
+		} else {
+			c.JSON(http.StatusOK, metrics[0])
+		}
 	}
 }
+
+func HandleUpdatesJSON(s Storager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var metrics []MetricsJSON
+		var singleMetric MetricsJSON
+		var body []byte
+		var err error
+
+		body, err = io.ReadAll(c.Request.Body)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
+			return
+		}
+
+		err = json.Unmarshal(body, &metrics)
+		if err != nil {
+			// If unmarshalling into an array fails, try unmarshalling into a single object
+			err = json.Unmarshal(body, &singleMetric)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+				return
+			}
+
+			// If unmarshalling into a single object succeeds, add it to the metrics array
+			metrics = append(metrics, singleMetric)
+		}
+
+		for _, metric := range metrics {
+			if metric.ID == "" {
+				log.Printf("Missing id")
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Missing id"})
+				return
+			}
+
+			err := storeMetricJSON(s, metric)
+			if err != nil {
+				log.Printf("Failed to store metric: %v", err)
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
+		}
+
+		// Respond with a single JSON object if the metrics array contains only one element
+		if len(metrics) > 1 {
+			c.JSON(http.StatusOK, metrics)
+		} else {
+			c.JSON(http.StatusOK, metrics[0])
+		}
+	}
+}
+
