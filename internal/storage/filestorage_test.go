@@ -54,7 +54,7 @@ func TestNewFileStorage(t *testing.T) {
 			memStorage, ok := memStorager.(*MemStorage)
 			if !ok {
 				t.Errorf("Expected *MemStorage, got %T", memStorager)
-			} 
+			}
 
 			_, err := NewFile(memStorage, tt.storeInterval, tt.fileStoragePath, tt.restore)
 			if (err != nil) != tt.wantErr {
@@ -117,19 +117,19 @@ func TestFileStorage_LoadFromFile_SaveToFile(t *testing.T) {
 				t.Fatalf("failed to write data to file: %v", err)
 			}
 
-			err = fs.LoadFromFile()
+			err = fs.LoadFrom()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("LoadFromFile() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			// Save to file
-			err = fs.SaveToFile()
+			err = fs.SaveTo()
 			if err != nil {
 				t.Errorf("SaveToFile() error = %v", err)
 			}
 
 			// Load again to verify data was saved correctly
-			err = fs.LoadFromFile()
+			err = fs.LoadFrom()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("LoadFromFile() after SaveToFile() error = %v, wantErr %v", err, tt.wantErr)
 			}

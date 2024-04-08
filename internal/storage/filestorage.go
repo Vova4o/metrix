@@ -41,7 +41,7 @@ func NewFile(s handlers.Storager, storeInterval int, fileStoragePath string, res
 
 		// File exists, load it into memory
 		fmt.Println("Loading metrics from file:", fs.fileStoragePath)
-		if err := fs.LoadFromFile(); err != nil {
+		if err := fs.LoadFrom(); err != nil {
 			logger.Log.WithError(err).Error("Failed to load metrics from file")
 			return nil, err
 		}
@@ -69,7 +69,7 @@ func (s *FileStorage) createFileIfNotExists() error {
 	return nil
 }
 
-func (s *FileStorage) LoadFromFile() error {
+func (s *FileStorage) LoadFrom() error {
 	// Open the file
 	file, err := os.Open(s.fileStoragePath)
 	if err != nil {
@@ -109,13 +109,13 @@ func (s *FileStorage) LoadFromFile() error {
 
 func (s *FileStorage) Close() {
 	// Save the current metrics to the file before closing the storage
-	if err := s.SaveToFile(); err != nil {
+	if err := s.SaveTo(); err != nil {
 		logger.Log.WithError(err).Error("Failed to save metrics to file")
 		// Handle error
 	}
 }
 
-func (s *FileStorage) SaveToFile() error {
+func (s *FileStorage) SaveTo() error {
 	data, err := json.MarshalIndent(s.Storager, "", "  ")
 	if err != nil {
 		return err
@@ -137,7 +137,7 @@ func (s *FileStorage) saveAtInterval() {
 	defer ticker.Stop()
 
 	for range ticker.C {
-		if err := s.SaveToFile(); err != nil {
+		if err := s.SaveTo(); err != nil {
 			logger.Log.WithError(err).Error("Failed to save metrics to file")
 		}
 	}

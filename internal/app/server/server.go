@@ -25,24 +25,24 @@ func NewServer() error {
 	// Create a new MemStorage
 	memStorager := storage.NewMemory()
 
-	if flag.FileStoragePath() != "" {
+	var db *sql.DB
+	dsn := flag.DatabaseDSN()
+	if dsn != "" {
+		db, err := storage.NewDBConnection(dsn)
+		if err != nil {
+			err = fmt.Errorf("failed to create new database: %v", err)
+			logger.Log.WithError(err).Error("Failed to create new database")
+			return err
+		}
+		defer db.DB.Close()
+	} else if flag.FileStoragePath() != "" {
 		fileStorage, err := storage.NewFile(memStorager, flag.StoreInterval(), flag.FileStoragePath(), flag.Restore())
 		if err != nil {
 			err = fmt.Errorf("failed to create new file storage: %v", err)
 			logger.Log.WithError(err).Error("Failed to create new file storage")
 			return err
 		}
-		defer fileStorage.SaveToFile() // Save metrics to file on exit
-	} else {
-		fmt.Println("Not using file storage")
-		logger.Log.Info("Not using file storage")
-	}
-
-	db, err := sql.Open("postgres", flag.DatabaseDSN())
-	if err != nil {
-		err = fmt.Errorf("failed to open database: %v", err)
-		logger.Log.WithError(err).Error("Failed to open database")
-		return err
+		defer fileStorage.SaveTo() // Save metrics to file on exit
 	}
 
 	router.Use(mw.RequestLogger())
@@ -54,6 +54,7 @@ func NewServer() error {
 	router.POST("/update/:metricType/:metricName/:metricValue", handlers.HandleUpdateText(memStorager))
 
 	router.POST("/update/", handlers.HandleUpdateJSON(memStorager))
+	router.POST("/updates/", handlers.HandleUpdatesJSON(memStorager))
 
 	router.GET("/", handlers.ShowMetrics(memStorager, tempFile))
 
