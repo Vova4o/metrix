@@ -28,7 +28,7 @@ func NewServer() error {
 	// Create a new MemStorage
 	memStorager := storage.NewMemory()
 
-	var db *storage.DbStorage
+	var db *storage.DBStorage
 	dsn := flag.DatabaseDSN()
 	if dsn != "" {
 		var err error

@@ -8,16 +8,15 @@ import (
 	"Vova4o/metrix/internal/logger"
 )
 
-type DbStorage struct {
+type DBStorage struct {
 	DB *sql.DB
 	handlers.Storager
 }
 
-func NewDBConnection(flag string) (*DbStorage, error) {
+func NewDBConnection(flag string) (*DBStorage, error) {
 	var err error
 
-	dbStorage := &DbStorage{
-	}
+	dbStorage := &DBStorage{}
 
 	dbStorage.DB, err = sql.Open("postgres", flag)
 	if err != nil {
